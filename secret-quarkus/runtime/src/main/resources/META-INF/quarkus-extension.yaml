@@ -1,0 +1,12 @@
+artifact: ${project.groupId}:${project.artifactId}:${project.version}
+name: secret
+#description: Do something useful.
+metadata:
+  keywords:
+    - secret
+    - auth
+    - security
+  guide: https://github.com/seepine/secret
+  categories:
+    - "middleware"
+  status: "preview"
