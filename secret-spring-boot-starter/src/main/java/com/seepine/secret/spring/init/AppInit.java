@@ -11,7 +11,11 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-
+/**
+ * 初始化
+ *
+ * @author seepine
+ */
 @Component
 public class AppInit implements ApplicationRunner {
   @Resource RedissonClient redissonClient;

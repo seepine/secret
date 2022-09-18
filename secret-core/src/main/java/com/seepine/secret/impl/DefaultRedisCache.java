@@ -4,7 +4,11 @@ import com.seepine.secret.interfaces.Cache;
 import com.seepine.secret.util.RedisUtil;
 
 import java.time.Duration;
-
+/**
+ * redis缓存
+ *
+ * @author seepine
+ */
 public class DefaultRedisCache implements Cache {
   @Override
   public Object get(String key) {

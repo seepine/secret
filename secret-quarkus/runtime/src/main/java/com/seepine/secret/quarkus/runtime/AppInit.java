@@ -10,6 +10,11 @@ import org.redisson.api.RedissonClient;
 
 import javax.enterprise.event.Observes;
 
+/**
+ * 初始化
+ *
+ * @author seepine
+ */
 public class AppInit {
 
   /**

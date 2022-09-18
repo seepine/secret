@@ -11,9 +11,11 @@ import com.seepine.tool.util.StrUtil;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * @author seepine
+ */
 public class AuthUtil {
-  private static final AuthUtil authUtil = new AuthUtil();
+  private static final AuthUtil AUTH_UTIL = new AuthUtil();
   private static final String COLON = ":";
   private AuthProperties authProperties;
 
@@ -26,27 +28,27 @@ public class AuthUtil {
 
   public static void init(
       AuthProperties authProperties, TokenGenerator tokenGenerator, Cache cache) {
-    authUtil.authProperties = authProperties;
-    authUtil.tokenGenerator = tokenGenerator;
-    authUtil.cache = cache;
+    AUTH_UTIL.authProperties = authProperties;
+    AUTH_UTIL.tokenGenerator = tokenGenerator;
+    AUTH_UTIL.cache = cache;
   }
 
   public static void setProperties(AuthProperties authProperties) {
-    authUtil.authProperties = authProperties;
+    AUTH_UTIL.authProperties = authProperties;
   }
 
   public static void setTokenGenerator(TokenGenerator tokenGenerator) {
-    authUtil.tokenGenerator = tokenGenerator;
+    AUTH_UTIL.tokenGenerator = tokenGenerator;
   }
 
   public static void setAuthCache(Cache cache) {
-    authUtil.cache = cache;
+    AUTH_UTIL.cache = cache;
   }
 
   public static void clear() {
-    authUtil.THREAD_LOCAL_USER.remove();
-    authUtil.THREAD_LOCAL_PERMISSION.remove();
-    authUtil.THREAD_LOCAL_TOKEN.remove();
+    AUTH_UTIL.THREAD_LOCAL_USER.remove();
+    AUTH_UTIL.THREAD_LOCAL_PERMISSION.remove();
+    AUTH_UTIL.THREAD_LOCAL_TOKEN.remove();
   }
 
   /**
@@ -76,14 +78,14 @@ public class AuthUtil {
   @SuppressWarnings("unchecked")
   public static <T> T getUser() {
     try {
-      T user = (T) authUtil.THREAD_LOCAL_USER.get();
+      T user = (T) AUTH_UTIL.THREAD_LOCAL_USER.get();
       if (user != null) {
         return user;
       }
     } catch (Exception ignored) {
     }
-    if (StrUtil.isNotBlank(authUtil.THREAD_LOCAL_TOKEN.get())) {
-      authUtil.cache.remove(authUtil.getUserKey(authUtil.THREAD_LOCAL_TOKEN.get()));
+    if (StrUtil.isNotBlank(AUTH_UTIL.THREAD_LOCAL_TOKEN.get())) {
+      AUTH_UTIL.cache.remove(AUTH_UTIL.getUserKey(AUTH_UTIL.THREAD_LOCAL_TOKEN.get()));
     }
     throw new AuthException(AuthExceptionType.EXPIRED_LOGIN);
   }
@@ -94,12 +96,12 @@ public class AuthUtil {
    */
   public static List<String> getPermission() {
     try {
-      List<String> permission = authUtil.THREAD_LOCAL_PERMISSION.get();
+      List<String> permission = AUTH_UTIL.THREAD_LOCAL_PERMISSION.get();
       return permission == null ? new ArrayList<>() : permission;
     } catch (Exception ignored) {
     }
-    if (StrUtil.isNotBlank(authUtil.THREAD_LOCAL_TOKEN.get())) {
-      authUtil.cache.remove(authUtil.getPermissionKey(authUtil.THREAD_LOCAL_TOKEN.get()));
+    if (StrUtil.isNotBlank(AUTH_UTIL.THREAD_LOCAL_TOKEN.get())) {
+      AUTH_UTIL.cache.remove(AUTH_UTIL.getPermissionKey(AUTH_UTIL.THREAD_LOCAL_TOKEN.get()));
     }
     throw new AuthException(AuthExceptionType.EXPIRED_LOGIN);
   }
@@ -120,8 +122,8 @@ public class AuthUtil {
    * @return token
    */
   public static String login(Object user, List<String> permission) {
-    String token = authUtil.tokenGenerator.gen();
-    authUtil.putIntoCache(token, user, permission);
+    String token = AUTH_UTIL.tokenGenerator.gen();
+    AUTH_UTIL.putIntoCache(token, user, permission);
     return token;
   }
 
@@ -136,23 +138,23 @@ public class AuthUtil {
     if (StrUtil.isBlank(token)) {
       return false;
     }
-    authUtil.THREAD_LOCAL_TOKEN.set(token);
+    AUTH_UTIL.THREAD_LOCAL_TOKEN.set(token);
 
     // 用户相关
-    Object user = authUtil.cache.get(authUtil.getUserKey(token));
+    Object user = AUTH_UTIL.cache.get(AUTH_UTIL.getUserKey(token));
     if (user == null) {
       return false;
     }
-    authUtil.THREAD_LOCAL_USER.set(user);
+    AUTH_UTIL.THREAD_LOCAL_USER.set(user);
 
     // 权限相关
     List<String> permission =
-        ListUtil.castList(authUtil.cache.get(authUtil.getPermissionKey(token)), String.class);
+        ListUtil.castList(AUTH_UTIL.cache.get(AUTH_UTIL.getPermissionKey(token)), String.class);
     if (permission != null) {
-      authUtil.THREAD_LOCAL_PERMISSION.set(permission);
+      AUTH_UTIL.THREAD_LOCAL_PERMISSION.set(permission);
     }
     // 刷新缓存
-    if (authUtil.authProperties.getResetTimeout()) {
+    if (AUTH_UTIL.authProperties.getResetTimeout()) {
       refresh();
     }
     return true;
@@ -164,7 +166,7 @@ public class AuthUtil {
    * @param user user
    */
   public static void refreshUser(Object user) {
-    authUtil.putIntoCache(authUtil.THREAD_LOCAL_TOKEN.get(), user, null);
+    AUTH_UTIL.putIntoCache(AUTH_UTIL.THREAD_LOCAL_TOKEN.get(), user, null);
   }
 
   /**
@@ -173,20 +175,20 @@ public class AuthUtil {
    * @param permission 权限列表
    */
   public static void refreshPermission(List<String> permission) {
-    authUtil.putIntoCache(authUtil.THREAD_LOCAL_TOKEN.get(), null, permission);
+    AUTH_UTIL.putIntoCache(AUTH_UTIL.THREAD_LOCAL_TOKEN.get(), null, permission);
   }
 
   /** 主动刷新缓存 */
   public static void refresh() {
-    String token = authUtil.THREAD_LOCAL_TOKEN.get();
+    String token = AUTH_UTIL.THREAD_LOCAL_TOKEN.get();
     if (StrUtil.isNotBlank(token)) {
       // 刷新用户信息缓存
-      authUtil.cache.expire(
-          authUtil.getUserKey(token), Duration.ofSeconds(authUtil.authProperties.getTimeout()));
+      AUTH_UTIL.cache.expire(
+          AUTH_UTIL.getUserKey(token), Duration.ofSeconds(AUTH_UTIL.authProperties.getTimeout()));
       // 刷新用户权限缓存
-      authUtil.cache.expire(
-          authUtil.getPermissionKey(token),
-          Duration.ofSeconds(authUtil.authProperties.getTimeout()));
+      AUTH_UTIL.cache.expire(
+          AUTH_UTIL.getPermissionKey(token),
+          Duration.ofSeconds(AUTH_UTIL.authProperties.getTimeout()));
     }
   }
 
@@ -219,10 +221,10 @@ public class AuthUtil {
 
   /** 登出 */
   public static void logout() {
-    String token = authUtil.THREAD_LOCAL_TOKEN.get();
+    String token = AUTH_UTIL.THREAD_LOCAL_TOKEN.get();
     if (StrUtil.isNotBlank(token)) {
-      authUtil.cache.remove(authUtil.getUserKey(token));
-      authUtil.cache.remove(authUtil.getPermissionKey(token));
+      AUTH_UTIL.cache.remove(AUTH_UTIL.getUserKey(token));
+      AUTH_UTIL.cache.remove(AUTH_UTIL.getPermissionKey(token));
     }
   }
 }

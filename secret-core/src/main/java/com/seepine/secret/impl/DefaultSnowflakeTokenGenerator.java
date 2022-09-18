@@ -7,13 +7,17 @@ import com.seepine.secret.util.RedisUtil;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
+/**
+ * 雪花id token生成
+ *
+ * @author seepine
+ */
 public class DefaultSnowflakeTokenGenerator implements TokenGenerator {
   private static final String SNOWFLAKE = "snowflake_worker:";
   private Integer workerId = null;
-  // 默认值6，限制每毫秒生成的ID个数。若生成速度超过5万个/秒，建议加大 SeqBitLength 到 10。
+  /** 默认值6，限制每毫秒生成的ID个数。若生成速度超过5万个/秒，建议加大 SeqBitLength 到 10。 */
   private static final byte MAX_SEQ_BIT_LENGTH = 10;
-  // 默认值6，限定 WorkerId 最大值为2^6-1，即默认最多支持64个节点。
+  /** 默认值6，限定 WorkerId 最大值为2^6-1，即默认最多支持64个节点。 */
   private static final byte MAX_WORKER_ID_BIT_LENGTH = 10;
 
   public DefaultSnowflakeTokenGenerator() {

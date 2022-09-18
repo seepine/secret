@@ -10,7 +10,11 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.ext.Provider;
 import java.lang.reflect.Method;
 
-/** 权限过滤器，优先值比auth低 */
+/**
+ * 权限过滤器，优先值比auth低
+ *
+ * @author seepine
+ */
 @Priority(Integer.MIN_VALUE + 100)
 @Provider
 public class PermissionFilter implements ContainerRequestFilter {

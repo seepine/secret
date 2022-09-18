@@ -8,10 +8,16 @@ import com.seepine.secret.exception.AuthException;
 import com.seepine.tool.util.StrUtil;
 
 import java.lang.reflect.Method;
-
+/**
+ * token 判断逻辑
+ *
+ * @author seepine
+ */
 public class TokenUtil {
+  private static final String HEADER_PREFIX = "Bearer ";
+
   public static boolean filter(Method method, String token) {
-    if (StrUtil.isNotEmpty(token) && token.startsWith("Bearer ")) {
+    if (StrUtil.isNotEmpty(token) && token.startsWith(HEADER_PREFIX)) {
       token = token.substring(7);
     }
     boolean isFindAndFill = AuthUtil.findAndFill(token);

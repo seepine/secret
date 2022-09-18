@@ -1,7 +1,9 @@
 package com.seepine.secret.entity;
 
 import lombok.Data;
-
+/**
+ * @author seepine
+ */
 @Data
 public class LogEvent {
   /** 模块，一般用于微服务或指定类型，方便统计 */

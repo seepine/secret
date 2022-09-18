@@ -5,7 +5,9 @@ import io.quarkus.arc.DefaultBean;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.Produces;
-
+/**
+ * @author seepine
+ */
 public class AutoConfig {
   @Produces
   @DefaultBean

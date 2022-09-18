@@ -5,7 +5,9 @@ import org.redisson.api.RedissonClient;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-
+/**
+ * @author seepine
+ */
 public class RedisUtil {
   private static final RedisUtil REDIS_UTIL = new RedisUtil();
   RedissonClient redissonClient;
@@ -165,10 +167,16 @@ public class RedisUtil {
   }
 
   public interface Apply {
+    /** 执行无返回值方法 */
     void run();
   }
 
   public interface ApplyAs<T> {
+    /**
+     * 执行带返回值方法
+     *
+     * @return T
+     */
     T run();
   }
 }

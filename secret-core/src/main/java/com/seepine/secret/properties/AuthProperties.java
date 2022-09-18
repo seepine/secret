@@ -1,7 +1,9 @@
 package com.seepine.secret.properties;
 
 import lombok.Data;
-
+/**
+ * @author seepine
+ */
 @Data
 public class AuthProperties {
   /** 是否开启接口加密 */

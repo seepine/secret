@@ -1,6 +1,11 @@
 package com.seepine.secret.enums;
-
+/**
+ * 定义鉴权异常类型
+ *
+ * @author seepine
+ */
 public enum AuthExceptionType {
+  /** 定义鉴权异常类型 */
   NOT_TOKEN("请先登录"),
   INVALID_TOKEN("请先登录"),
   EXPIRED_LOGIN("登录过期"),
