@@ -1,11 +1,11 @@
 package com.seepine.secret;
 
+import com.seepine.secret.entity.AuthUser;
 import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
 import com.seepine.secret.interfaces.Cache;
 import com.seepine.secret.interfaces.TokenGenerator;
 import com.seepine.secret.properties.AuthProperties;
-import com.seepine.tool.util.ListUtil;
 import com.seepine.tool.util.StrUtil;
 
 import java.time.Duration;
@@ -22,9 +22,8 @@ public class AuthUtil {
   private Cache cache;
   private TokenGenerator tokenGenerator;
 
-  private final ThreadLocal<Object> THREAD_LOCAL_USER = new ThreadLocal<>();
-  private final ThreadLocal<List<String>> THREAD_LOCAL_PERMISSION = new ThreadLocal<>();
   private final ThreadLocal<String> THREAD_LOCAL_TOKEN = new ThreadLocal<>();
+  private final ThreadLocal<AuthUser> THREAD_LOCAL_USER = new ThreadLocal<>();
 
   public static void init(
       AuthProperties authProperties, TokenGenerator tokenGenerator, Cache cache) {
@@ -47,7 +46,6 @@ public class AuthUtil {
 
   public static void clear() {
     AUTH_UTIL.THREAD_LOCAL_USER.remove();
-    AUTH_UTIL.THREAD_LOCAL_PERMISSION.remove();
     AUTH_UTIL.THREAD_LOCAL_TOKEN.remove();
   }
 
@@ -76,7 +74,7 @@ public class AuthUtil {
    * @return user
    */
   @SuppressWarnings("unchecked")
-  public static <T> T getUser() {
+  public static <T extends AuthUser> T getUser() {
     try {
       T user = (T) AUTH_UTIL.THREAD_LOCAL_USER.get();
       if (user != null) {
@@ -94,10 +92,13 @@ public class AuthUtil {
    *
    * @return permission
    */
-  public static List<String> getPermission() {
+  public static List<String> getPermissions() {
     try {
-      List<String> permission = AUTH_UTIL.THREAD_LOCAL_PERMISSION.get();
-      return permission == null ? new ArrayList<>() : permission;
+      AuthUser authUser = AUTH_UTIL.THREAD_LOCAL_USER.get();
+      if (authUser == null) {
+        return new ArrayList<>();
+      }
+      return authUser.getPermissions() == null ? new ArrayList<>() : authUser.getPermissions();
     } catch (Exception ignored) {
     }
     if (StrUtil.isNotBlank(AUTH_UTIL.THREAD_LOCAL_TOKEN.get())) {
@@ -111,8 +112,8 @@ public class AuthUtil {
    * @param user user
    * @return token
    */
-  public static String login(Object user) {
-    return login(user, null);
+  public static <T extends AuthUser> T login(T user) {
+    return login(user, user.getPermissions());
   }
   /**
    * 登录成功后设置用户信息，并返回token
@@ -121,10 +122,12 @@ public class AuthUtil {
    * @param permission 用户权限
    * @return token
    */
-  public static String login(Object user, List<String> permission) {
+  public static <T extends AuthUser> T login(T user, List<String> permission) {
     String token = AUTH_UTIL.tokenGenerator.gen();
-    AUTH_UTIL.putIntoCache(token, user, permission);
-    return token;
+    user.setPermissions(permission);
+    user.setAccessToken(token);
+    AUTH_UTIL.putIntoCache(token, user);
+    return user;
   }
 
   /**
@@ -139,20 +142,17 @@ public class AuthUtil {
       return false;
     }
     AUTH_UTIL.THREAD_LOCAL_TOKEN.set(token);
-
     // 用户相关
-    Object user = AUTH_UTIL.cache.get(AUTH_UTIL.getUserKey(token));
+    AuthUser user;
+    try {
+      user = (AuthUser) AUTH_UTIL.cache.get(AUTH_UTIL.getUserKey(token));
+    } catch (Exception e) {
+      return false;
+    }
     if (user == null) {
       return false;
     }
     AUTH_UTIL.THREAD_LOCAL_USER.set(user);
-
-    // 权限相关
-    List<String> permission =
-        ListUtil.castList(AUTH_UTIL.cache.get(AUTH_UTIL.getPermissionKey(token)), String.class);
-    if (permission != null) {
-      AUTH_UTIL.THREAD_LOCAL_PERMISSION.set(permission);
-    }
     // 刷新缓存
     if (AUTH_UTIL.authProperties.getResetTimeout()) {
       refresh();
@@ -165,17 +165,8 @@ public class AuthUtil {
    *
    * @param user user
    */
-  public static void refreshUser(Object user) {
-    AUTH_UTIL.putIntoCache(AUTH_UTIL.THREAD_LOCAL_TOKEN.get(), user, null);
-  }
-
-  /**
-   * 刷新用户权限
-   *
-   * @param permission 权限列表
-   */
-  public static void refreshPermission(List<String> permission) {
-    AUTH_UTIL.putIntoCache(AUTH_UTIL.THREAD_LOCAL_TOKEN.get(), null, permission);
+  public static <T extends AuthUser> void refresh(T user) {
+    AUTH_UTIL.putIntoCache(AUTH_UTIL.THREAD_LOCAL_TOKEN.get(), user);
   }
 
   /** 主动刷新缓存 */
@@ -197,25 +188,17 @@ public class AuthUtil {
    *
    * @param token token
    * @param user 用户信息
-   * @param permission 权限信息
    */
-  private void putIntoCache(String token, Object user, List<String> permission) {
+  private <T extends AuthUser> void putIntoCache(String token, T user) {
     if (StrUtil.isNotBlank(token)) {
       THREAD_LOCAL_TOKEN.set(token);
       if (user != null) {
         cache.set(getUserKey(token), user);
       }
-      if (permission != null) {
-        cache.set(getPermissionKey(token), permission);
-      }
       refresh();
     }
-    // 允许未登录调用此方法设置当前登录者信息及权限，方便后续逻辑获取用户权限
     if (user != null) {
       THREAD_LOCAL_USER.set(user);
-    }
-    if (permission != null) {
-      THREAD_LOCAL_PERMISSION.set(permission);
     }
   }
 
@@ -224,7 +207,6 @@ public class AuthUtil {
     String token = AUTH_UTIL.THREAD_LOCAL_TOKEN.get();
     if (StrUtil.isNotBlank(token)) {
       AUTH_UTIL.cache.remove(AUTH_UTIL.getUserKey(token));
-      AUTH_UTIL.cache.remove(AUTH_UTIL.getPermissionKey(token));
     }
   }
 }

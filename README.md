@@ -21,48 +21,45 @@
 
 ### 1.获取token
 
-登录接口使用注解`@Expose`暴露，获取到用户信息后调用AuthUtil.login，该方法将会返回用户token
-并且可传入不同用户信息，比如User，比如UserVo
+登录接口使用注解`@Expose`暴露，获取到用户信息后调用AuthUtil.login
 
 ```java
 public class Controller {
   @Expose
   @GetMapping("/login/{username}/{password}")
-  public R login(@PathVariable String username, @PathVariable String password) {
-    User user = userService.getByUsername(username, password);
-    return R.ok(AuthUtil.login(user));
+  public AuthUser login(@PathVariable String username, @PathVariable String password) {
+    AuthUser user = userService.getByUsername(username, password);
+    // {id,nickName,accessToken...}
+    return AuthUtil.login(user);
   }
 
   @Expose
   @GetMapping("/login/{code}")
-  public R login(@PathVariable String code) {
-    UserVO user = userService.getByCode(code);
-    return R.ok(AuthUtil.login(user));
+  public MyAuthUser login(@PathVariable String code) {
+    // class MyAuthUser extend AuthUser{ 扩展自己想要的字段 }
+    MyAuthUser myUser = userService.getByCode(code);
+    return AuthUtil.login(myUser);
   }
 }
 ```
 
 ### 2.请求接口
 
-请求接口时，请求头中加上{'Authorization':'Bearer xxxxxxxxxxxxxxxxxx'}`其中xxx字符串由登录接口获得`
-，即可在方法中通过AuthUtil.getUser()
-获取到当前登录者的用户信息
+请求接口时，请求头中加上`{'Authorization':'Bearer ${authUser.accessToken}'}`
+，即可在后端中通过AuthUtil.getUser()获取到当前登录者的用户信息
 
 ```java
 public class Controller {
   @GetMapping("/info")
-  public R info() {
-    Object obj = AuthUtil.getUser();
-    User user = AuthUtil.getUser();
-    // UserVO userVO=AuthUtil.getUser();
-    return R.ok(user);
+  public AuthUser info() {
+    return AuthUtil.getUser();
   }
 
-  // 暴露接口使用注解
+  // 暴露接口时
   @Expose
   @GetMapping("/info")
   public void info() {
-    // ...
+    // 当接口暴露，但请求头有accessToken，仍可通过AuthUtil.getUser()获取到用户信息
   }
 }
 ```
@@ -82,7 +79,18 @@ secret:
 
 > @Permission/@PrePermission
 
-使用接口鉴权注解时，需要在登陆时传入用户所拥有的权限list，例如`AuthUtil.login(user,permissionList)`
+使用接口鉴权注解时，需要在登陆时传入用户所拥有的权限list，例如
+
+```java
+user.setPermissions(List<String>);
+  AuthUtil.login(user)
+```
+
+或
+
+```java
+AuthUtil.login(user,permissionList)
+```
 
 ### 1.单独使用Permission
 
