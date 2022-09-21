@@ -1,42 +1,42 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>secret-parent</artifactId>
-        <groupId>com.seepine</groupId>
-        <version>0.0.2</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>secret-parent</artifactId>
+		<groupId>com.seepine</groupId>
+		<version>0.0.3</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
-    <artifactId>secret-core</artifactId>
-    <packaging>jar</packaging>
+	<artifactId>secret-core</artifactId>
+	<packaging>jar</packaging>
 
-    <name>secret-core</name>
+	<name>secret-core</name>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+	<properties>
+		<tool.version>0.0.3</tool.version>
+	</properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.seepine</groupId>
-            <artifactId>tool</artifactId>
-            <version>0.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.seepine</groupId>
-            <artifactId>secret-annotation</artifactId>
-            <version>0.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson</artifactId>
-            <version>${redisson.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.yitter</groupId>
-            <artifactId>yitter-idgenerator</artifactId>
-            <version>1.0.6</version>
-        </dependency>
-    </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>com.seepine</groupId>
+			<artifactId>tool</artifactId>
+			<version>${tool.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.seepine</groupId>
+			<artifactId>secret-annotation</artifactId>
+			<version>0.0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.redisson</groupId>
+			<artifactId>redisson</artifactId>
+			<version>${redisson.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.yitter</groupId>
+			<artifactId>yitter-idgenerator</artifactId>
+			<version>1.0.6</version>
+		</dependency>
+	</dependencies>
 </project>
