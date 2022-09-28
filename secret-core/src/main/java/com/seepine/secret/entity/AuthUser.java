@@ -4,7 +4,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author seepine
@@ -30,12 +30,14 @@ public class AuthUser implements Serializable {
   String avatarUrl;
   /** 登录时间 */
   LocalDateTime signTime;
+  /** 续期时间 */
+  LocalDateTime refreshTime;
   /** 用户权限 */
-  List<String> permissions;
+  Set<String> permissions;
   /** 租户名称 */
   String tenantName;
   /** 租户id */
   Serializable tenantId;
-  /** 访问令牌 */
+  /** 令牌 */
   String token;
 }
