@@ -9,8 +9,8 @@ import com.seepine.tool.util.StrUtil;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +45,7 @@ public class PermissionUtil {
   }
 
   public static void verify(Permission permission, PermissionPrefix permissionPrefix) {
-    List<String> userPermission = AuthUtil.getPermissions();
+    Set<String> permissions = AuthUtil.getPermissions();
 
     // 如果类上有前缀注解，并且值不为空串，并且权限注解prefix为true，表示需要拼接前缀
     boolean hasPrefix =
@@ -60,7 +60,7 @@ public class PermissionUtil {
           must.stream().map(item -> permissionPrefix.value() + item).collect(Collectors.toList());
     }
     // 如果权限不为空，并且没有拥有所有需要的权限，阻止
-    if (!new HashSet<>(userPermission).containsAll(must) && !must.isEmpty()) {
+    if (!permissions.containsAll(must) && !must.isEmpty()) {
       throw new AuthException(AuthExceptionType.NOT_PERMISSION);
     }
 
@@ -72,7 +72,7 @@ public class PermissionUtil {
     if (!or.isEmpty()) {
       for (String s : or) {
         // 拥有一个即通过
-        if (userPermission.contains(s)) {
+        if (permissions.contains(s)) {
           return;
         }
       }
