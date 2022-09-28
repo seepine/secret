@@ -29,7 +29,7 @@ public class Controller {
   @GetMapping("/login/{username}/{password}")
   public AuthUser login(@PathVariable String username, @PathVariable String password) {
     AuthUser user = userService.getByUsername(username, password);
-    // {id,nickName,accessToken...}
+    // {id,nickName,token...}
     return AuthUtil.login(user);
   }
 
@@ -45,7 +45,7 @@ public class Controller {
 
 ### 2.请求接口
 
-请求接口时，请求头中加上`{'Authorization':'Bearer ${authUser.accessToken}'}`
+请求接口时，请求头中加上`{'Authorization':'Bearer ${authUser.token}'}`
 ，即可在后端中通过AuthUtil.getUser()获取到当前登录者的用户信息
 
 ```java
@@ -54,25 +54,36 @@ public class Controller {
   public AuthUser info() {
     return AuthUtil.getUser();
   }
+}
+```
 
-  // 暴露接口时
-  @Expose
-  @GetMapping("/info")
-  public void info() {
-    // 当接口暴露，但请求头有accessToken，仍可通过AuthUtil.getUser()获取到用户信息
+### 3.刷新用户信息
+
+场景一般为用户修改了昵称或头像
+
+```java
+public class Controller {
+  @GetMapping("/update")
+  public AuthUser info() {
+    // 修改用户信息逻辑
+    AuthUser user = userService.update();
+    // 刷新用户信息
+    return AuthUtil.refresh(user);
   }
 }
 ```
 
-### 3.自定义配置
+### 4.自定义配置
 
 常用自定义的配置
 
 ```yml
 secret:
-  cache-prefix: xxx #缓存redis的key
-  timeout: 3600 #登录有效期,单位秒
-  reset-timeout: true #是否自动续租token过期时间
+  timeout: 86400 # token有效期,单位秒,默认24小时
+  # 重置token有效期，单位秒，默认15分钟
+  # 当http请求时，检测到token已颁发超过15分钟，会自动刷新token有效期为${timeout}
+  # 0为不刷新
+  resetTimeout: 900 
 ```
 
 ## 三、接口鉴权
