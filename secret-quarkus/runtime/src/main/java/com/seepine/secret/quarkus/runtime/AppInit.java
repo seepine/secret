@@ -1,9 +1,7 @@
 package com.seepine.secret.quarkus.runtime;
 
 import com.seepine.secret.AuthUtil;
-import com.seepine.secret.impl.DefaultRedisCache;
-import com.seepine.secret.impl.DefaultSnowflakeTokenGenerator;
-import com.seepine.secret.properties.AuthProperties;
+import com.seepine.secret.interfaces.TokenParser;
 import com.seepine.secret.util.RedisUtil;
 import io.quarkus.runtime.StartupEvent;
 import org.redisson.api.RedissonClient;
@@ -22,12 +20,10 @@ public class AppInit {
    * @param redissonClient redis
    */
   void startup(
-      @Observes StartupEvent event, RedissonClient redissonClient, AuthProperties authProperties) {
-    AuthUtil.setProperties(authProperties);
+      @Observes StartupEvent event, RedissonClient redissonClient, TokenParser tokenParser) {
     if (redissonClient != null) {
       RedisUtil.init(redissonClient);
-      AuthUtil.setTokenGenerator(new DefaultSnowflakeTokenGenerator());
-      AuthUtil.setAuthCache(new DefaultRedisCache());
     }
+    AuthUtil.init(tokenParser);
   }
 }

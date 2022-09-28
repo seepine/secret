@@ -20,18 +20,16 @@ public class InterceptorConfig implements WebMvcConfigurer {
   @Override
   public void addInterceptors(@NonNull InterceptorRegistry registry) {
     // 拦截非@Expose注解
-    if (authProperties.getEnabled()) {
-      registry
-          .addInterceptor(new AuthInterceptor(authProperties))
-          .addPathPatterns("/**")
-          .excludePathPatterns(authProperties.getDefaultExcludePathPatterns())
-          .excludePathPatterns(authProperties.getExcludePathPatterns())
-          .order(authProperties.getInterceptorOrder());
-    }
+    registry
+        .addInterceptor(new AuthInterceptor(authProperties))
+        .addPathPatterns("/**")
+        .excludePathPatterns(authProperties.getDefaultExcludePathPatterns())
+        .excludePathPatterns(authProperties.getExcludePathPatterns())
+        .order(Integer.MIN_VALUE + 10);
     // 拦截@Permission注解
     registry
         .addInterceptor(new PermissionInterceptor())
         .addPathPatterns("/**")
-        .order(authProperties.getInterceptorOrder() + 100);
+        .order(Integer.MIN_VALUE + 100);
   }
 }

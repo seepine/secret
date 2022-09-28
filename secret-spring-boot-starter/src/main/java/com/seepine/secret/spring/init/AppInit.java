@@ -1,9 +1,7 @@
 package com.seepine.secret.spring.init;
 
 import com.seepine.secret.AuthUtil;
-import com.seepine.secret.interfaces.Cache;
-import com.seepine.secret.interfaces.TokenGenerator;
-import com.seepine.secret.properties.AuthProperties;
+import com.seepine.secret.interfaces.TokenParser;
 import com.seepine.secret.util.RedisUtil;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.ApplicationArguments;
@@ -19,13 +17,11 @@ import javax.annotation.Resource;
 @Component
 public class AppInit implements ApplicationRunner {
   @Resource RedissonClient redissonClient;
-  @Resource AuthProperties authProperties;
-  @Resource TokenGenerator tokenGenerator;
-  @Resource Cache cache;
+  @Resource TokenParser tokenParser;
 
   @Override
   public void run(ApplicationArguments args) {
     RedisUtil.init(redissonClient);
-    AuthUtil.init(authProperties, tokenGenerator, cache);
+    AuthUtil.init(tokenParser);
   }
 }

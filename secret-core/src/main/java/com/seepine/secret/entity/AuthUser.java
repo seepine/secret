@@ -37,5 +37,5 @@ public class AuthUser implements Serializable {
   /** 租户id */
   Serializable tenantId;
   /** 访问令牌 */
-  String accessToken;
+  String token;
 }

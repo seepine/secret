@@ -16,9 +16,18 @@ public class RedisUtil {
     REDIS_UTIL.redissonClient = redissonClient;
   }
 
+  /**
+   * redis实例是否关闭
+   *
+   * @return bool
+   */
+  public static boolean isShutdown() {
+    return REDIS_UTIL.redissonClient == null || REDIS_UTIL.redissonClient.isShutdown();
+  }
+
   private static final long DEFAULT_TIME = 7;
   private static final TimeUnit DEFAULT_TIME_UNIT = TimeUnit.DAYS;
-  private static final String REDIS_LOCK_KEY = "auth_redisson_lock:";
+  private static final String REDIS_LOCK_KEY = "secret_redisson_lock:";
 
   /**
    * 设置过期时间
@@ -47,7 +56,12 @@ public class RedisUtil {
    */
   @SuppressWarnings("unchecked")
   public static <T> T get(String key) {
-    return (T) REDIS_UTIL.redissonClient.getBucket(key).get();
+    try {
+      return (T) REDIS_UTIL.redissonClient.getBucket(key).get();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
   /**

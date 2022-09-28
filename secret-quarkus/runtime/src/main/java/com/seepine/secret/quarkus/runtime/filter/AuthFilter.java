@@ -13,7 +13,7 @@ import java.lang.reflect.Method;
  *
  * @author seepine
  */
-@Priority(Integer.MIN_VALUE)
+@Priority(Integer.MIN_VALUE + 10)
 @Provider
 public class AuthFilter implements ContainerRequestFilter, ContainerResponseFilter {
   @Inject ResourceInfo resourceInfo;
