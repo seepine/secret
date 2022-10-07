@@ -3,7 +3,6 @@ package com.seepine.secret.entity;
 import lombok.*;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
@@ -28,10 +27,10 @@ public class AuthUser implements Serializable {
   String email;
   /** 头像url */
   String avatarUrl;
-  /** 登录时间 */
-  LocalDateTime signTime;
-  /** 续期时间 */
-  LocalDateTime refreshTime;
+  /** 登录时间,millis */
+  Long signTime;
+  /** 续期时间,millis */
+  Long refreshTime;
   /** 用户权限 */
   Set<String> permissions;
   /** 租户名称 */

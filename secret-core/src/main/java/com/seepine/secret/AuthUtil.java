@@ -5,10 +5,9 @@ import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
 import com.seepine.secret.interfaces.TokenParser;
 import com.seepine.secret.properties.AuthProperties;
+import com.seepine.secret.util.CurrentTimeMillis;
 import com.seepine.tool.util.StrUtil;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -82,7 +81,7 @@ public class AuthUtil {
    */
   public static <T extends AuthUser> T login(T user, Set<String> permission) {
     user.setPermissions(permission == null ? new HashSet<>() : permission);
-    user.setSignTime(LocalDateTime.now());
+    user.setSignTime(CurrentTimeMillis.now());
     T authUser = AUTH_UTIL.tokenParser.gen(user);
     AUTH_UTIL.tokenParser.set(authUser);
     return authUser;
@@ -103,8 +102,8 @@ public class AuthUtil {
       AuthUser authUser = AUTH_UTIL.tokenParser.get(token);
       AUTH_UTIL.authUserThreadLocal.set(authUser);
       if (AUTH_UTIL.authProperties.getResetTimeout() > 0) {
-        Duration duration = Duration.between(authUser.getRefreshTime(), LocalDateTime.now());
-        if (duration.toSeconds() > AUTH_UTIL.authProperties.getResetTimeout()) {
+        if (CurrentTimeMillis.now() - authUser.getRefreshTime()
+            > AUTH_UTIL.authProperties.getResetTimeout() * 1000) {
           refresh();
         }
       }
@@ -132,7 +131,7 @@ public class AuthUtil {
   public static <T extends AuthUser> T refresh(T user) {
     T authUser = getUser();
     user.setToken(authUser.getToken());
-    user.setRefreshTime(LocalDateTime.now());
+    user.setRefreshTime(CurrentTimeMillis.now());
     AUTH_UTIL.tokenParser.set(user);
     return user;
   }
