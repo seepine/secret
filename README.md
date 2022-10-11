@@ -29,7 +29,7 @@ public class Controller {
   @GetMapping("/login/{username}/{password}")
   public AuthUser login(@PathVariable String username, @PathVariable String password) {
     AuthUser user = userService.getByUsername(username, password);
-    // {id,nickName,token...}
+    // 通过login方法会自动填充token属性 {id,nickName,token...}
     return AuthUtil.login(user);
   }
 
@@ -86,6 +86,51 @@ secret:
   resetTimeout: 900 
 ```
 
+### 5.登录持久化
+
+默认是 `redisson` 实现，只需初始化时赋值 `RedissonClient` 给 `RedisUtil` 即可，
+同时也可在项目中直接使用 `RedisUtil.get/set` 的静态方法直接操作缓存
+
+以 `SpringBoot` 为例
+
+```java
+
+@Component
+public class AppInit implements ApplicationRunner {
+  @Resource
+  RedissonClient redissonClient;
+
+  @Override
+  public void run(ApplicationArguments args) {
+    RedisUtil.init(redissonClient);
+  }
+}
+```
+
+### 6.自定义token生成和缓存
+
+以 `SpringBoot` 为例
+
+```java
+
+@Configuration
+@AutoConfigureBefore(SecretConfiguration.class)
+public class Config {
+  @Resource
+  private AuthProperties authProperties;
+
+  @Bean
+  public AuthTokenGen tokenGen() {
+    return new CustomAuthTokenGenImpl(authProperties);
+  }
+
+  @Bean
+  public AuthCache cache() {
+    return new CustomAuthCacheImpl(authProperties);
+  }
+}
+```
+
 ## 三、接口鉴权
 
 > @Permission/@PrePermission
@@ -93,14 +138,24 @@ secret:
 使用接口鉴权注解时，需要在登陆时传入用户所拥有的权限list，例如
 
 ```java
-user.setPermissions(List<String>);
-  AuthUtil.login(user)
+class Controller {
+
+  @Expose
+  @GetMapping("/login/{username}/{password}")
+  public AuthUser login(@PathVariable String username, @PathVariable String password) {
+    AuthUser user = userService.getByUsername(username, password);
+    Set<String> permissions = roleService.getByUserId(user.getId());
+    // user.setPermissions(permissions);
+    // return AuthUtil.login(user);
+    return AuthUtil.login(user, permissions);
+  }
+
+}
 ```
 
 或
 
 ```java
-AuthUtil.login(user,permissionList)
 ```
 
 ### 1.单独使用Permission
@@ -185,7 +240,17 @@ public class Controller {
 }
 ```
 
-### 3.实现带鉴权功能的BaseController
+### 3.也可在业务逻辑中判断
+
+```java
+public class Service {
+  public void save(User user) {
+    AuthUtil.hasPermission("user_add");
+  }
+}
+```
+
+### 4.实现带鉴权功能的BaseController
 
 一般业务都会有crud接口，所以我们可以抽离出BaseController结合PermissionPrefix快速实现crud接口并且拥有接口鉴权功能
 

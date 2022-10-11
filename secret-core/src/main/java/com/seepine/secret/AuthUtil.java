@@ -3,7 +3,8 @@ package com.seepine.secret;
 import com.seepine.secret.entity.AuthUser;
 import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
-import com.seepine.secret.interfaces.TokenParser;
+import com.seepine.secret.interfaces.AuthCache;
+import com.seepine.secret.interfaces.AuthTokenGen;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.secret.util.CurrentTimeMillis;
 import com.seepine.tool.util.StrUtil;
@@ -16,13 +17,24 @@ import java.util.Set;
  */
 public class AuthUtil {
   private static final AuthUtil AUTH_UTIL = new AuthUtil();
-  private TokenParser tokenParser;
+  private AuthTokenGen tokenGen;
+  private AuthCache cache;
   private final ThreadLocal<AuthUser> authUserThreadLocal = new ThreadLocal<>();
   private AuthProperties authProperties;
 
-  public static void init(AuthProperties authProperties, TokenParser tokenParser) {
+  public static void init(AuthProperties authProperties, AuthCache cache, AuthTokenGen tokenGen) {
     AUTH_UTIL.authProperties = authProperties;
-    AUTH_UTIL.tokenParser = tokenParser;
+    AUTH_UTIL.cache = cache;
+    AUTH_UTIL.tokenGen = tokenGen;
+  }
+
+  /**
+   * 获取authProperties
+   *
+   * @return AuthProperties
+   */
+  public static AuthProperties getAuthProperties() {
+    return AUTH_UTIL.authProperties;
   }
 
   public static void clear() {
@@ -82,9 +94,10 @@ public class AuthUtil {
   public static <T extends AuthUser> T login(T user, Set<String> permission) {
     user.setPermissions(permission == null ? new HashSet<>() : permission);
     user.setSignTime(CurrentTimeMillis.now());
-    T authUser = AUTH_UTIL.tokenParser.gen(user);
-    AUTH_UTIL.tokenParser.set(authUser);
-    return authUser;
+    String token = AUTH_UTIL.tokenGen.gen(user);
+    AUTH_UTIL.cache.set(AUTH_UTIL.authProperties.getCachePrefix() + token, user);
+    user.setToken(token);
+    return user;
   }
 
   /**
@@ -99,7 +112,8 @@ public class AuthUtil {
       return false;
     }
     try {
-      AuthUser authUser = AUTH_UTIL.tokenParser.get(token);
+      AuthUser authUser = AUTH_UTIL.cache.get(AUTH_UTIL.authProperties.getCachePrefix() + token);
+      authUser.setToken(token);
       AUTH_UTIL.authUserThreadLocal.set(authUser);
       if (AUTH_UTIL.authProperties.getResetTimeout() > 0) {
         if (CurrentTimeMillis.now() - authUser.getRefreshTime()
@@ -130,17 +144,18 @@ public class AuthUtil {
    */
   public static <T extends AuthUser> T refresh(T user) {
     T authUser = getUser();
-    user.setToken(authUser.getToken());
     user.setRefreshTime(CurrentTimeMillis.now());
-    AUTH_UTIL.tokenParser.set(user);
+    user.setToken(null);
+    AUTH_UTIL.cache.set(AUTH_UTIL.authProperties.getCachePrefix() + authUser.getToken(), user);
+    user.setToken(authUser.getToken());
     return user;
   }
 
   /** 登出 */
   public static void logout() {
-    AuthUser user = AUTH_UTIL.authUserThreadLocal.get();
-    if (user != null) {
-      AUTH_UTIL.tokenParser.remove(user);
+    try {
+      AUTH_UTIL.cache.remove(AUTH_UTIL.authProperties.getCachePrefix() + getUser().getToken());
+    } catch (AuthException ignored) {
     }
   }
 }

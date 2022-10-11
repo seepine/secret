@@ -8,6 +8,8 @@ import lombok.Data;
 public class AuthProperties {
   /** token过期时间，单位秒，默认24小时 */
   Long timeout = 24 * 60 * 60L;
+  /** 缓存前缀 */
+  String cachePrefix = "com.seepine.secret:";
   /** 默认aes加密密钥，16/24/32 */
   String secret = "comseepinesecret";
   /** 重置token过期时间，单位秒，默认15分钟刷新一次，仅在收到请求时刷新 */

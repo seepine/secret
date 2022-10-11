@@ -1,5 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.seepine.secret.spring.AutoConfiguration,\
+  com.seepine.secret.spring.SecretConfiguration,\
   com.seepine.secret.spring.config.InterceptorConfig,\
   com.seepine.secret.spring.init.AppInit,\
   com.seepine.secret.spring.aspect.PermissionAspect,\

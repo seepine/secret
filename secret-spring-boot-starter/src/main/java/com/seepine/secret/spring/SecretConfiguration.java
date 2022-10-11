@@ -1,7 +1,9 @@
 package com.seepine.secret.spring;
 
-import com.seepine.secret.impl.RedisTokenParser;
-import com.seepine.secret.interfaces.TokenParser;
+import com.seepine.secret.impl.DefaultAuthCacheImpl;
+import com.seepine.secret.impl.DefaultAuthTokenGenImpl;
+import com.seepine.secret.interfaces.AuthCache;
+import com.seepine.secret.interfaces.AuthTokenGen;
 import com.seepine.secret.spring.properties.AuthPropertiesImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -15,12 +17,18 @@ import javax.annotation.Resource;
  */
 @Configuration
 @EnableConfigurationProperties({AuthPropertiesImpl.class})
-public class AutoConfiguration {
+public class SecretConfiguration {
   @Resource private AuthPropertiesImpl authProperties;
 
   @Bean
-  @ConditionalOnMissingBean(TokenParser.class)
-  public TokenParser tokenParser() {
-    return new RedisTokenParser(authProperties);
+  @ConditionalOnMissingBean(AuthTokenGen.class)
+  public AuthTokenGen authTokenGen() {
+    return new DefaultAuthTokenGenImpl(authProperties);
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(AuthTokenGen.class)
+  public AuthCache authCache() {
+    return new DefaultAuthCacheImpl(authProperties);
   }
 }
