@@ -1,14 +1,15 @@
 # secret
 
-极简安全框架，支持SpringBoot和Quarkus
+极简安全框架，支持SpringBoot、Quarkus
 
 ## 一、集成
 
-### 1.注解简介
+### 1.简介
 
 - @Expose/@NotExpose 暴露/不暴露接口
 - @Permission/@PermissionPrefix 接口鉴权，快速实现用户、角色、权限功能
 - @Log 快速实现日志记录
+- Lock.sync(key,()->{}) 便捷实现锁、分布式锁
 
 ### 1.引入依赖
 

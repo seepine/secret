@@ -1,5 +1,7 @@
 package com.seepine.secret.util;
 
+import com.seepine.secret.interfaces.LockApply;
+import com.seepine.secret.interfaces.LockApplyAs;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
@@ -153,7 +155,7 @@ public class RedisUtil {
    * @param key 锁值
    * @param apply 执行方法
    */
-  public static void sync(Object key, Apply apply) {
+  public static void sync(Object key, LockApply apply) {
     RLock lock = REDIS_UTIL.redissonClient.getLock(REDIS_LOCK_KEY + key.toString());
     try {
       lock.lock();
@@ -170,7 +172,7 @@ public class RedisUtil {
    * @param <T> 返回值类型
    * @return 返回值
    */
-  public static <T> T sync(Object key, ApplyAs<T> apply) {
+  public static <T> T sync(Object key, LockApplyAs<T> apply) {
     RLock lock = REDIS_UTIL.redissonClient.getLock(REDIS_LOCK_KEY + key.toString());
     try {
       lock.lock();
@@ -178,19 +180,5 @@ public class RedisUtil {
     } finally {
       lock.unlock();
     }
-  }
-
-  public interface Apply {
-    /** 执行无返回值方法 */
-    void run();
-  }
-
-  public interface ApplyAs<T> {
-    /**
-     * 执行带返回值方法
-     *
-     * @return T
-     */
-    T run();
   }
 }
