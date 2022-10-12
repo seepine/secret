@@ -91,16 +91,15 @@ public class AuthUtil {
    * 创建新对象避免外部操作对象修改数据
    *
    * @param user 用户
-   * @param permissions 权限
    * @return 用户信息
    * @param <T> T
    */
-  private static <T extends AuthUser> T createNew(T user, Set<String> permissions) {
-    Set<String> permissionsCache = permissions == null ? new HashSet<>() : permissions;
+  private static <T extends AuthUser> T createNew(T user) {
+    Set<String> permissionsCache =
+        user.getPermissions() == null ? new HashSet<>() : user.getPermissions();
     user.setPermissions(null);
     T newUser = Json.parse(Json.toJson(user), new TypeReference<>() {});
     newUser.setPermissions(permissionsCache);
-    newUser.setToken(null);
     return newUser;
   }
 
@@ -112,13 +111,14 @@ public class AuthUtil {
    * @return user with token
    */
   public static <T extends AuthUser> T login(T user, Set<String> permissions) {
-    T newUser = createNew(user, permissions);
-    newUser.setSignTime(CurrentTimeMillis.now());
-    newUser.setRefreshTime(newUser.getSignTime());
-    String token = AUTH_UTIL.tokenGen.gen(newUser);
-    AUTH_UTIL.cache.set(AUTH_UTIL.authProperties.getCachePrefix() + token, newUser);
-    newUser.setToken(token);
-    return newUser;
+    user.setPermissions(permissions == null ? new HashSet<>() : permissions);
+    user.setSignTime(CurrentTimeMillis.now());
+    user.setRefreshTime(user.getSignTime());
+    String token = AUTH_UTIL.tokenGen.gen(user);
+    AUTH_UTIL.cache.set(AUTH_UTIL.authProperties.getCachePrefix() + token, user);
+    user.setToken(token);
+    AUTH_UTIL.authUserThreadLocal.set(user);
+    return createNew(user);
   }
 
   /**
@@ -164,13 +164,16 @@ public class AuthUtil {
    * @return 用户信息
    */
   public static <T extends AuthUser> T refresh(T user) {
+    // get token
     String token = getUser().getToken();
-    T newUser = createNew(user, user.getPermissions());
-    newUser.setRefreshTime(CurrentTimeMillis.now());
-    AUTH_UTIL.cache.set(AUTH_UTIL.authProperties.getCachePrefix() + token, newUser);
-    newUser.setToken(token);
-    AUTH_UTIL.authUserThreadLocal.set(newUser);
-    return newUser;
+    // fill refreshTime
+    user.setRefreshTime(CurrentTimeMillis.now());
+    // fill permissions
+    user.setPermissions(user.getPermissions() == null ? new HashSet<>() : user.getPermissions());
+    AUTH_UTIL.cache.set(AUTH_UTIL.authProperties.getCachePrefix() + token, user);
+    user.setToken(token);
+    AUTH_UTIL.authUserThreadLocal.set(user);
+    return createNew(user);
   }
 
   /** 登出 */
