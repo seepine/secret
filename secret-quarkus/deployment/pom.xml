@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>secret-quarkus-parent</artifactId>
 		<groupId>com.seepine</groupId>
-		<version>0.0.8</version>
+		<version>0.0.9</version>
 	</parent>
 
 	<artifactId>secret-quarkus-deployment</artifactId>
