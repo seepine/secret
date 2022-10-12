@@ -11,6 +11,7 @@ import java.util.Set;
 @Builder
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthUser implements Serializable {
@@ -27,9 +28,9 @@ public class AuthUser implements Serializable {
   String email;
   /** 头像url */
   String avatarUrl;
-  /** 登录时间,millis */
+  /** 登录时间,自动生成,millis */
   Long signTime;
-  /** 续期时间,millis */
+  /** 续期时间,自动生成,millis */
   Long refreshTime;
   /** 用户权限 */
   Set<String> permissions;
