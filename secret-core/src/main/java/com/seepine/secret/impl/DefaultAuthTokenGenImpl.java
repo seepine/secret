@@ -5,6 +5,8 @@ import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
 import com.seepine.secret.interfaces.AuthTokenGen;
 import com.seepine.secret.properties.AuthProperties;
+import com.seepine.secret.util.CurrentTimeMillis;
+import com.seepine.tool.Run;
 import com.seepine.tool.secure.symmetric.AES;
 
 /**
@@ -15,6 +17,10 @@ public class DefaultAuthTokenGenImpl implements AuthTokenGen {
   private final AES aes;
 
   public DefaultAuthTokenGenImpl(AuthProperties authProperties) {
+    int secretLength = authProperties.getSecret().length();
+    Run.isTrue(
+        secretLength == 16 || secretLength == 24 || secretLength == 32,
+        "secret properties:must be 16/24/32 bytes long");
     this.aes = new AES(authProperties.getSecret());
   }
 
@@ -23,6 +29,6 @@ public class DefaultAuthTokenGenImpl implements AuthTokenGen {
     if (authUser.getId() == null || "".equals(authUser.getId().toString())) {
       throw new AuthException(AuthExceptionType.MISSING_ID);
     }
-    return aes.encrypt(authUser.getId().toString() + System.currentTimeMillis());
+    return aes.encrypt(authUser.getId().toString() + CurrentTimeMillis.now()).toLowerCase();
   }
 }
