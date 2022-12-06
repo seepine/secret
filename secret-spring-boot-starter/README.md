@@ -5,7 +5,7 @@
 ### 1.引入依赖
 
 - Latest
-  Version: [![Maven Central](https://img.shields.io/maven-central/v/com.seepnie/secret-spring-boot-starter.svg)](https://search.maven.org/search?q=g:com.seepine%20a:secret-spring-boot-starter)
+  Version: [![Maven Central](https://img.shields.io/maven-central/v/com.seepine/secret-spring-boot-starter.svg)](https://search.maven.org/search?q=g:com.seepine%20a:secret-spring-boot-starter)
 - Maven:
 
 ```xml

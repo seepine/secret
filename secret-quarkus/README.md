@@ -5,7 +5,7 @@
 ### 1.引入依赖
 
 - Latest
-  Version: [![Maven Central](https://img.shields.io/maven-central/v/com.seepnie/secret-quarkus.svg)](https://search.maven.org/search?q=g:com.seepine%20a:secret-quarkus)
+  Version: [![Maven Central](https://img.shields.io/maven-central/v/com.seepine/secret-quarkus.svg)](https://search.maven.org/search?q=g:com.seepine%20a:secret-quarkus)
 - Maven:
 
 ```xml
