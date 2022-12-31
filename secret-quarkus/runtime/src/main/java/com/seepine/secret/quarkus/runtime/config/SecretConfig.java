@@ -1,15 +1,13 @@
 package com.seepine.secret.quarkus.runtime.config;
 
-import com.seepine.secret.impl.DefaultAuthCacheImpl;
-import com.seepine.secret.impl.DefaultAuthTokenGenImpl;
-import com.seepine.secret.interfaces.AuthCache;
-import com.seepine.secret.interfaces.AuthTokenGen;
+import com.seepine.secret.impl.DefaultAuthServiceImpl;
+import com.seepine.secret.interfaces.AuthService;
 import com.seepine.secret.properties.AuthProperties;
 import io.quarkus.arc.DefaultBean;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import javax.ws.rs.Produces;
+import javax.inject.Singleton;
 
 /**
  * @author seepine
@@ -19,15 +17,8 @@ public class SecretConfig {
 
   @Produces
   @DefaultBean
-  @ApplicationScoped
-  public AuthTokenGen authTokenGen() {
-    return new DefaultAuthTokenGenImpl(authProperties);
-  }
-
-  @Produces
-  @DefaultBean
-  @ApplicationScoped
-  public AuthCache authCache() {
-    return new DefaultAuthCacheImpl(authProperties);
+  @Singleton
+  public AuthService authService() {
+    return new DefaultAuthServiceImpl(authProperties);
   }
 }

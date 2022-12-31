@@ -5,10 +5,9 @@ import com.seepine.json.Json;
 import com.seepine.secret.entity.AuthUser;
 import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
-import com.seepine.secret.interfaces.AuthCache;
-import com.seepine.secret.interfaces.AuthTokenGen;
+import com.seepine.secret.interfaces.AuthService;
 import com.seepine.secret.properties.AuthProperties;
-import com.seepine.secret.util.CurrentTimeMillis;
+import com.seepine.tool.util.CurrentTimeMillis;
 import com.seepine.tool.util.StrUtil;
 
 import java.util.HashSet;
@@ -19,15 +18,13 @@ import java.util.Set;
  */
 public class AuthUtil {
   private static final AuthUtil AUTH_UTIL = new AuthUtil();
-  private AuthTokenGen tokenGen;
-  private AuthCache cache;
+  private AuthService authService;
   private final ThreadLocal<AuthUser> authUserThreadLocal = new ThreadLocal<>();
   private AuthProperties authProperties;
 
-  public static void init(AuthProperties authProperties, AuthCache cache, AuthTokenGen tokenGen) {
+  public static void init(AuthProperties authProperties, AuthService authService) {
     AUTH_UTIL.authProperties = authProperties;
-    AUTH_UTIL.cache = cache;
-    AUTH_UTIL.tokenGen = tokenGen;
+    AUTH_UTIL.authService = authService;
   }
 
   /**
@@ -112,13 +109,13 @@ public class AuthUtil {
    */
   public static <T extends AuthUser> T login(T user, Set<String> permissions) {
     user.setPermissions(permissions == null ? new HashSet<>() : permissions);
-    user.setSignTime(CurrentTimeMillis.now());
+    user.setSignTime(CurrentTimeMillis.now() / 1000);
     user.setRefreshTime(user.getSignTime());
-    String token = AUTH_UTIL.tokenGen.gen(user);
-    AUTH_UTIL.cache.set(AUTH_UTIL.authProperties.getCachePrefix() + token, user);
+    String token = AUTH_UTIL.authService.genToken(user);
     user.setToken(token);
-    AUTH_UTIL.authUserThreadLocal.set(user);
-    return createNew(user);
+    T newUser = createNew(user);
+    AUTH_UTIL.authUserThreadLocal.set(newUser);
+    return newUser;
   }
 
   /**
@@ -133,15 +130,10 @@ public class AuthUtil {
       return false;
     }
     try {
-      AuthUser authUser = AUTH_UTIL.cache.get(AUTH_UTIL.authProperties.getCachePrefix() + token);
+      AuthUser authUser =
+          AUTH_UTIL.authService.get(AUTH_UTIL.authProperties.getCachePrefix() + token);
       authUser.setToken(token);
       AUTH_UTIL.authUserThreadLocal.set(authUser);
-      if (AUTH_UTIL.authProperties.getResetTimeout() > 0) {
-        if (CurrentTimeMillis.now() - authUser.getRefreshTime()
-            > AUTH_UTIL.authProperties.getResetTimeout() * 1000) {
-          refresh();
-        }
-      }
       return true;
     } catch (Exception e) {
       return false;
@@ -164,22 +156,21 @@ public class AuthUtil {
    * @return 用户信息
    */
   public static <T extends AuthUser> T refresh(T user) {
-    // get token
-    String token = getUser().getToken();
     // fill refreshTime
-    user.setRefreshTime(CurrentTimeMillis.now());
+    user.setRefreshTime(CurrentTimeMillis.now() / 1000);
     // fill permissions
     user.setPermissions(user.getPermissions() == null ? new HashSet<>() : user.getPermissions());
-    AUTH_UTIL.cache.set(AUTH_UTIL.authProperties.getCachePrefix() + token, user);
-    user.setToken(token);
-    AUTH_UTIL.authUserThreadLocal.set(user);
-    return createNew(user);
+    user.setToken(null);
+    user.setToken(AUTH_UTIL.authService.genToken(user));
+    T newUser = createNew(user);
+    AUTH_UTIL.authUserThreadLocal.set(newUser);
+    return newUser;
   }
 
   /** 登出 */
   public static void logout() {
     try {
-      AUTH_UTIL.cache.remove(AUTH_UTIL.authProperties.getCachePrefix() + getUser().getToken());
+      AUTH_UTIL.authService.remove(getUser().getToken());
       AUTH_UTIL.authUserThreadLocal.remove();
     } catch (AuthException ignored) {
     }

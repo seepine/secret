@@ -3,8 +3,8 @@ package com.seepine.secret.spring.aspect;
 import com.seepine.secret.annotation.Log;
 import com.seepine.secret.entity.LogEvent;
 import com.seepine.secret.interfaces.AuthLogService;
-import com.seepine.secret.spring.util.CurrentTimeMillisClock;
 import com.seepine.secret.spring.util.LogUtil;
+import com.seepine.tool.util.CurrentTimeMillis;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -42,7 +42,7 @@ public class LogAspect {
     MethodSignature methodSignature = (MethodSignature) signature;
     Object result = null;
     Throwable exception = null;
-    long startTime = CurrentTimeMillisClock.now();
+    long startTime = CurrentTimeMillis.now();
     try {
       result = joinPoint.proceed();
     } catch (Throwable e) {
@@ -50,7 +50,7 @@ public class LogAspect {
     }
     if (authLogService != null) {
       Log log = methodSignature.getMethod().getAnnotation(Log.class);
-      LogEvent logEvent = LogUtil.gen(log, CurrentTimeMillisClock.now() - startTime, exception);
+      LogEvent logEvent = LogUtil.gen(log, CurrentTimeMillis.now() - startTime, exception);
       authLogService.save(logEvent);
     }
     if (exception != null) {

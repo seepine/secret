@@ -3,15 +3,15 @@ package com.seepine.secret.quarkus.runtime.config;
 import com.seepine.secret.properties.AuthProperties;
 import io.quarkus.arc.DefaultBean;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.Produces;
+import javax.enterprise.inject.Produces;
+import javax.inject.Singleton;
 /**
  * @author seepine
  */
 public class AutoConfig {
   @Produces
   @DefaultBean
-  @ApplicationScoped
+  @Singleton
   public AuthProperties authProperties() {
     return new AuthProperties();
   }

@@ -1,9 +1,7 @@
 package com.seepine.secret.spring;
 
-import com.seepine.secret.impl.DefaultAuthCacheImpl;
-import com.seepine.secret.impl.DefaultAuthTokenGenImpl;
-import com.seepine.secret.interfaces.AuthCache;
-import com.seepine.secret.interfaces.AuthTokenGen;
+import com.seepine.secret.impl.DefaultAuthServiceImpl;
+import com.seepine.secret.interfaces.AuthService;
 import com.seepine.secret.spring.properties.AuthPropertiesImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -21,14 +19,8 @@ public class SecretConfiguration {
   @Resource private AuthPropertiesImpl authProperties;
 
   @Bean
-  @ConditionalOnMissingBean(AuthTokenGen.class)
-  public AuthTokenGen authTokenGen() {
-    return new DefaultAuthTokenGenImpl(authProperties);
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(AuthTokenGen.class)
-  public AuthCache authCache() {
-    return new DefaultAuthCacheImpl(authProperties);
+  @ConditionalOnMissingBean(AuthService.class)
+  public AuthService authService() {
+    return new DefaultAuthServiceImpl(authProperties);
   }
 }

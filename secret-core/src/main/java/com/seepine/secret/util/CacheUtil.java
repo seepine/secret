@@ -91,6 +91,10 @@ public class CacheUtil {
    * @param delayMillisecond 过期时间(毫秒)
    */
   public static void set(String key, Object value, long delayMillisecond) {
+    if (delayMillisecond <= 0) {
+      set(key, value);
+      return;
+    }
     if (RedisUtil.isShutdown()) {
       CACHE_UTIL.expireCache.put(key, value, delayMillisecond);
     } else {
