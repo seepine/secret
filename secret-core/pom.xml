@@ -13,8 +13,9 @@
 	<name>secret-core</name>
 
 	<properties>
-		<tool.version>0.0.8</tool.version>
+		<tool.version>0.0.9</tool.version>
 		<json.version>0.1.0</json.version>
+		<jwt.version>4.2.1</jwt.version>
 	</properties>
 
 	<dependencies>
@@ -38,6 +39,11 @@
 			<artifactId>redisson</artifactId>
 			<version>${redisson.version}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+			<version>${jwt.version}</version>
 		</dependency>
 	</dependencies>
 </project>
