@@ -18,5 +18,9 @@ public class LoginTest {
     AuthUtil.refresh();
     AuthUtil.findAndFill(newUser.getToken());
     System.out.println(AuthUtil.getUser());
+    Long signTime = AuthUtil.getUser().getSignTime();
+    System.out.println("signTime:" + signTime);
+    Long id = AuthUtil.getUser().getIdAsLong();
+    System.out.println("id:" + id);
   }
 }
