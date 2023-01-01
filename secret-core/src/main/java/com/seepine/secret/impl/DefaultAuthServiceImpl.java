@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.IncorrectClaimException;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -50,7 +51,9 @@ public class DefaultAuthServiceImpl implements AuthService {
       map.forEach(
           (key, value) -> {
             if (value != null && !"permissions".equals(key)) {
-              if (value instanceof Long) {
+              if (value instanceof String) {
+                jwtBuilder.withClaim(key, (String) value);
+              } else if (value instanceof Long) {
                 jwtBuilder.withClaim(key, (Long) value);
               } else if (value instanceof Integer) {
                 jwtBuilder.withClaim(key, (Integer) value);
@@ -89,7 +92,10 @@ public class DefaultAuthServiceImpl implements AuthService {
           .forEach(
               (key, claim) -> {
                 if (!claim.isMissing() && !claim.isNull()) {
-                  json.set(key, claim.toString());
+                  Object val = getValue(claim);
+                  if (val != null) {
+                    json.set(key, val);
+                  }
                 }
               });
       T authUser = Json.parse(json.toString(), new TypeReference<>() {});
@@ -103,6 +109,30 @@ public class DefaultAuthServiceImpl implements AuthService {
     } catch (Exception e) {
       throw new AuthException(AuthExceptionType.VERIFY_TOKEN_FAIL);
     }
+  }
+
+  private Object getValue(Claim claim) {
+    String val = claim.asString();
+    if (val != null) {
+      return val;
+    }
+    Long valLong = claim.asLong();
+    if (valLong != null) {
+      return valLong;
+    }
+    Integer valInt = claim.asInt();
+    if (valInt != null) {
+      return valInt;
+    }
+    Double valDouble = claim.asDouble();
+    if (valDouble != null) {
+      return valDouble;
+    }
+    Boolean valBool = claim.asBoolean();
+    if (valBool != null) {
+      return valBool;
+    }
+    return claim.asDate();
   }
 
   @Override
