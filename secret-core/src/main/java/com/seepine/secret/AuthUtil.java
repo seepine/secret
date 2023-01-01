@@ -130,8 +130,7 @@ public class AuthUtil {
       return false;
     }
     try {
-      AuthUser authUser =
-          AUTH_UTIL.authService.get(AUTH_UTIL.authProperties.getCachePrefix() + token);
+      AuthUser authUser = AUTH_UTIL.authService.get(token);
       authUser.setToken(token);
       AUTH_UTIL.authUserThreadLocal.set(authUser);
       return true;
