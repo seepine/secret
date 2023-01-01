@@ -84,7 +84,14 @@ public class DefaultAuthServiceImpl implements AuthService {
       }
       DecodedJWT decodedJWT = verifier.verify(token);
       JsonObject json = new JsonObject();
-      decodedJWT.getClaims().forEach((key, claim) -> json.set(key, claim.asString()));
+      decodedJWT
+          .getClaims()
+          .forEach(
+              (key, claim) -> {
+                if (!claim.isMissing() && !claim.isNull()) {
+                  json.set(key, claim.toString());
+                }
+              });
       T authUser = Json.parse(json.toString(), new TypeReference<>() {});
       authUser.setPermissions(CacheUtil.get(authProperties.getCachePrefix() + token));
       authUser.setToken(token);

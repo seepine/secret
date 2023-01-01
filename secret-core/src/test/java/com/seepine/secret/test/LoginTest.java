@@ -16,6 +16,7 @@ public class LoginTest {
     System.out.println(newUser);
     Thread.sleep(2852);
     AuthUtil.refresh();
+    AuthUtil.findAndFill(newUser.getToken());
     System.out.println(AuthUtil.getUser());
   }
 }
