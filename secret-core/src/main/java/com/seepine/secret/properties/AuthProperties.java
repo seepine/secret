@@ -6,8 +6,8 @@ import lombok.Data;
  */
 @Data
 public class AuthProperties {
-  /** token过期时间，单位秒，默认0永不过期 */
-  Long expiresAt = 0L;
+  /** token过期时间，单位秒，默认72小时 */
+  Long expiresAt = 3 * 24 * 60 * 60L;
   /** 缓存前缀 */
   String cachePrefix = "com.seepine.secret:";
   /** 默认jwt加密密钥 */
