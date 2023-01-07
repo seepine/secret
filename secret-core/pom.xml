@@ -13,7 +13,7 @@
 	<name>secret-core</name>
 
 	<properties>
-		<tool.version>0.0.9</tool.version>
+		<tool.version>0.0.10</tool.version>
 		<json.version>0.1.0</json.version>
 		<jwt.version>4.2.1</jwt.version>
 	</properties>
@@ -33,12 +33,6 @@
 			<groupId>com.seepine</groupId>
 			<artifactId>json</artifactId>
 			<version>${json.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.redisson</groupId>
-			<artifactId>redisson</artifactId>
-			<version>${redisson.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.auth0</groupId>

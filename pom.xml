@@ -48,8 +48,6 @@
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
-
-		<redisson.version>3.18.1</redisson.version>
 	</properties>
 
 	<dependencies>
