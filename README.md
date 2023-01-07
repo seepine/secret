@@ -9,7 +9,6 @@
 - @Expose/@NotExpose 暴露/不暴露接口
 - @Permission/@PermissionPrefix 接口鉴权，快速实现用户、角色、权限功能
 - @Log 快速实现日志记录
-- Lock.sync(key,()->{}) 便捷实现锁、分布式锁
 
 ### 1.引入依赖
 
@@ -80,37 +79,17 @@ public class Controller {
 
 ```yml
 secret:
-  timeout: 86400 # token有效期,单位秒,默认24小时
-  # 重置token有效期，单位秒，默认15分钟
-  # 当http请求时，检测到token已颁发超过15分钟，会自动刷新token有效期为${timeout}
-  # 0为不刷新
-  resetTimeout: 900 
+  # jwt token有效期，单位秒，默认3天
+  expires-at: 259200
+  # jwt颁发者
+  issuer: secret
+  # jwt HS256密钥
+  secret: yourSecret
 ```
 
-### 5.登录持久化
+### 5.自定义token生成解析逻辑
 
-默认是 `redisson` 实现，只需初始化时赋值 `RedissonClient` 给 `RedisUtil` 即可，
-同时也可在项目中直接使用 `RedisUtil.get/set` 的静态方法直接操作缓存
-
-以 `SpringBoot` 为例
-
-```java
-
-@Component
-public class AppInit implements ApplicationRunner {
-  @Resource
-  RedissonClient redissonClient;
-
-  @Override
-  public void run(ApplicationArguments args) {
-    RedisUtil.init(redissonClient);
-  }
-}
-```
-
-### 6.自定义token生成和缓存
-
-以 `SpringBoot` 为例
+以 `SpringBoot` 为例，实现 `AuthService` 并注入bean即可
 
 ```java
 
@@ -121,13 +100,8 @@ public class Config {
   private AuthProperties authProperties;
 
   @Bean
-  public AuthTokenGen tokenGen() {
-    return new CustomAuthTokenGenImpl(authProperties);
-  }
-
-  @Bean
-  public AuthCache cache() {
-    return new CustomAuthCacheImpl(authProperties);
+  public AuthService authService() {
+    return new CustomAuthService(authProperties);
   }
 }
 ```

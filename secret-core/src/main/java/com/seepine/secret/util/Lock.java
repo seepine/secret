@@ -17,12 +17,8 @@ public class Lock {
    * @param apply 执行方法
    */
   public static void sync(Object key, LockApply apply) {
-    if (RedisUtil.isShutdown()) {
-      synchronized (key.toString().intern()) {
-        apply.run();
-      }
-    } else {
-      RedisUtil.sync(key, apply);
+    synchronized (key.toString().intern()) {
+      apply.run();
     }
   }
   /**
@@ -34,12 +30,8 @@ public class Lock {
    * @return 返回值
    */
   public static <T> T sync(Object key, LockApplyAs<T> apply) {
-    if (RedisUtil.isShutdown()) {
-      synchronized (key.toString().intern()) {
-        return apply.run();
-      }
-    } else {
-      return RedisUtil.sync(key, apply);
+    synchronized (key.toString().intern()) {
+      return apply.run();
     }
   }
 }
