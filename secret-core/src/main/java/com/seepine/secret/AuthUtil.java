@@ -1,7 +1,5 @@
 package com.seepine.secret;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.seepine.json.Json;
 import com.seepine.secret.entity.AuthUser;
 import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
@@ -85,22 +83,6 @@ public class AuthUtil {
   }
 
   /**
-   * 创建新对象避免外部操作对象修改数据
-   *
-   * @param user 用户
-   * @return 用户信息
-   * @param <T> T
-   */
-  private static <T extends AuthUser> T createNew(T user) {
-    Set<String> permissionsCache =
-        user.getPermissions() == null ? new HashSet<>() : user.getPermissions();
-    user.setPermissions(null);
-    T newUser = Json.parse(Json.toJson(user), new TypeReference<>() {});
-    newUser.setPermissions(permissionsCache);
-    return newUser;
-  }
-
-  /**
    * 登录成功后设置用户信息，并返回token
    *
    * @param user user
@@ -113,9 +95,8 @@ public class AuthUtil {
     user.setRefreshTime(user.getSignTime());
     String token = AUTH_UTIL.authService.genToken(user);
     user.setToken(token);
-    T newUser = createNew(user);
-    AUTH_UTIL.authUserThreadLocal.set(newUser);
-    return newUser;
+    AUTH_UTIL.authUserThreadLocal.set(user);
+    return user;
   }
 
   /**
@@ -161,9 +142,8 @@ public class AuthUtil {
     user.setPermissions(user.getPermissions() == null ? new HashSet<>() : user.getPermissions());
     user.setToken(null);
     user.setToken(AUTH_UTIL.authService.genToken(user));
-    T newUser = createNew(user);
-    AUTH_UTIL.authUserThreadLocal.set(newUser);
-    return newUser;
+    AUTH_UTIL.authUserThreadLocal.set(user);
+    return user;
   }
 
   /** 登出 */
