@@ -4,16 +4,16 @@ import com.seepine.tool.function.FunctionN;
 import com.seepine.tool.util.ExpireCache;
 
 /**
- * 缓存工具类
+ * 内存缓存工具类
  *
  * @author seepine
  * @since 0.0.10
  */
 public class CacheUtil {
-  private static final CacheUtil CACHE_UTIL = new CacheUtil();
+  protected static final CacheUtil CACHE_UTIL = new CacheUtil();
   ExpireCache<Object> expireCache = new ExpireCache<>();
 
-  private CacheUtil() {}
+  protected CacheUtil() {}
 
   /**
    * 获取缓存
@@ -88,17 +88,13 @@ public class CacheUtil {
   }
 
   /**
-   * 设置缓存，默认无过期时间
+   * 设置缓存
    *
    * @param key key
    * @param value value
    * @param delayMillisecond 过期时间(毫秒)
    */
   public static void set(String key, Object value, long delayMillisecond) {
-    if (delayMillisecond <= 0) {
-      set(key, value);
-      return;
-    }
     CACHE_UTIL.expireCache.put(key, value, delayMillisecond);
   }
 }

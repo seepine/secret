@@ -12,8 +12,8 @@ public enum AuthExceptionType {
   RATE_LIMIT("请求过于频繁"),
   NOT_REQUEST("无效的请求"),
   MISSING_ID("缺少id"),
-  GEN_TOKEN_FAIL("生成token失败"),
-  VERIFY_TOKEN_FAIL("验证token失败"),
+  GENERATE_TOKEN_FAIL("生成token失败"),
+  ANALYZE_TOKEN_FAIL("解析token失败"),
   TOKEN_EXPIRES("登录过期"),
   INCORRECT_ISSUER("错误的签发者");
   public final String message;

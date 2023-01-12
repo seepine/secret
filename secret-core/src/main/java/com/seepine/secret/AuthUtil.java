@@ -3,7 +3,8 @@ package com.seepine.secret;
 import com.seepine.secret.entity.AuthUser;
 import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
-import com.seepine.secret.interfaces.AuthService;
+import com.seepine.secret.interfaces.CacheService;
+import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.tool.util.CurrentTimeMillis;
 import com.seepine.tool.util.StrUtil;
@@ -16,13 +17,18 @@ import java.util.Set;
  */
 public class AuthUtil {
   private static final AuthUtil AUTH_UTIL = new AuthUtil();
-  private AuthService authService;
   private final ThreadLocal<AuthUser> authUserThreadLocal = new ThreadLocal<>();
   private AuthProperties authProperties;
+  private TokenService tokenService;
+  private CacheService cacheService;
 
-  public static void init(AuthProperties authProperties, AuthService authService) {
+  protected AuthUtil() {}
+
+  public static void init(
+      AuthProperties authProperties, TokenService tokenService, CacheService cacheService) {
     AUTH_UTIL.authProperties = authProperties;
-    AUTH_UTIL.authService = authService;
+    AUTH_UTIL.tokenService = tokenService;
+    AUTH_UTIL.cacheService = cacheService;
   }
 
   /**
@@ -34,19 +40,21 @@ public class AuthUtil {
     return AUTH_UTIL.authProperties;
   }
 
+  public static CacheService getCacheService() {
+    return AUTH_UTIL.cacheService;
+  }
+
   public static void clear() {
     AUTH_UTIL.authUserThreadLocal.remove();
   }
   /**
    * 在controller/service中使用，直接获取当前登录者用户信息
    *
-   * @param <T> 范型
    * @return user
    */
-  @SuppressWarnings("unchecked")
-  public static <T extends AuthUser> T getUser() {
+  public static AuthUser getUser() {
     try {
-      T user = (T) AUTH_UTIL.authUserThreadLocal.get();
+      AuthUser user = AUTH_UTIL.authUserThreadLocal.get();
       if (user != null) {
         return user;
       }
@@ -78,10 +86,9 @@ public class AuthUtil {
    * @param user user
    * @return token
    */
-  public static <T extends AuthUser> T login(T user) {
+  public static AuthUser login(AuthUser user) {
     return login(user, user.getPermissions());
   }
-
   /**
    * 登录成功后设置用户信息，并返回token
    *
@@ -89,14 +96,15 @@ public class AuthUtil {
    * @param permissions 用户权限
    * @return user with token
    */
-  public static <T extends AuthUser> T login(T user, Set<String> permissions) {
+  public static AuthUser login(AuthUser user, Set<String> permissions) {
     user.setPermissions(permissions == null ? new HashSet<>() : permissions);
     user.setSignTime(CurrentTimeMillis.now() / 1000);
     user.setRefreshTime(user.getSignTime());
-    String token = AUTH_UTIL.authService.genToken(user);
+    String token = AUTH_UTIL.tokenService.generate(user);
     user.setToken(token);
-    AUTH_UTIL.authUserThreadLocal.set(user);
-    return user;
+    AuthUser copy = user.copy();
+    AUTH_UTIL.authUserThreadLocal.set(copy);
+    return copy;
   }
 
   /**
@@ -111,9 +119,7 @@ public class AuthUtil {
       return false;
     }
     try {
-      AuthUser authUser = AUTH_UTIL.authService.get(token);
-      authUser.setToken(token);
-      AUTH_UTIL.authUserThreadLocal.set(authUser);
+      AUTH_UTIL.authUserThreadLocal.set(AUTH_UTIL.tokenService.analyze(token));
       return true;
     } catch (Exception e) {
       return false;
@@ -125,7 +131,7 @@ public class AuthUtil {
    *
    * @return authUser 用户信息
    */
-  public static <T extends AuthUser> T refresh() {
+  public static AuthUser refresh() {
     return refresh(getUser());
   }
 
@@ -135,21 +141,22 @@ public class AuthUtil {
    * @param user 用户信息
    * @return 用户信息
    */
-  public static <T extends AuthUser> T refresh(T user) {
+  public static AuthUser refresh(AuthUser user) {
     // fill refreshTime
     user.setRefreshTime(CurrentTimeMillis.now() / 1000);
     // fill permissions
     user.setPermissions(user.getPermissions() == null ? new HashSet<>() : user.getPermissions());
     user.setToken(null);
-    user.setToken(AUTH_UTIL.authService.genToken(user));
-    AUTH_UTIL.authUserThreadLocal.set(user);
-    return user;
+    user.setToken(AUTH_UTIL.tokenService.generate(user));
+    AuthUser copy = user.copy();
+    AUTH_UTIL.authUserThreadLocal.set(copy);
+    return copy;
   }
 
   /** 登出 */
   public static void logout() {
     try {
-      AUTH_UTIL.authService.remove(getUser().getToken());
+      AUTH_UTIL.tokenService.clear(getUser().getToken());
       AUTH_UTIL.authUserThreadLocal.remove();
     } catch (AuthException ignored) {
     }

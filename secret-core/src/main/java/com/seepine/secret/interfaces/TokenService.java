@@ -7,7 +7,7 @@ import com.seepine.secret.exception.AuthException;
  * @author seepine
  * @since 0.0.6
  */
-public interface AuthService {
+public interface TokenService {
   /**
    * 通过对象生成token，需要在此做token-user的缓存逻辑
    *
@@ -15,7 +15,7 @@ public interface AuthService {
    * @return token
    * @throws AuthException e
    */
-  <T extends AuthUser> String genToken(T authUser) throws AuthException;
+  String generate(AuthUser authUser) throws AuthException;
   /**
    * 获取缓存
    *
@@ -23,13 +23,12 @@ public interface AuthService {
    * @return 值
    * @throws AuthException e
    */
-  <T extends AuthUser> T get(String token) throws AuthException;
-
+  AuthUser analyze(String token) throws AuthException;
   /**
-   * 移除缓存逻辑，退出登录时会调用
+   * 清理逻辑，例如退出登录时会调用，清理缓存等，例如jwt还需要额外增加登录黑名单
    *
    * @param token token
    * @throws AuthException e
    */
-  void remove(String token) throws AuthException;
+  void clear(String token) throws AuthException;
 }

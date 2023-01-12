@@ -1,7 +1,8 @@
 package com.seepine.secret.quarkus.runtime;
 
 import com.seepine.secret.AuthUtil;
-import com.seepine.secret.interfaces.AuthService;
+import com.seepine.secret.interfaces.CacheService;
+import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import io.quarkus.runtime.StartupEvent;
 
@@ -16,10 +17,14 @@ public class AppInit {
   /**
    * @param event event
    * @param authProperties authProperties
-   * @param authService authService
+   * @param tokenService tokenService
+   * @param cacheService cacheService
    */
   void startup(
-      @Observes StartupEvent event, AuthProperties authProperties, AuthService authService) {
-    AuthUtil.init(authProperties, authService);
+      @Observes StartupEvent event,
+      AuthProperties authProperties,
+      TokenService tokenService,
+      CacheService cacheService) {
+    AuthUtil.init(authProperties, tokenService, cacheService);
   }
 }

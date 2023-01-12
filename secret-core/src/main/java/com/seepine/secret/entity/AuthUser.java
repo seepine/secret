@@ -1,12 +1,11 @@
 package com.seepine.secret.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.seepine.tool.Run;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author seepine
@@ -34,23 +33,62 @@ public class AuthUser implements Serializable {
   Long signTime;
   /** 续期时间,自动生成,second */
   Long refreshTime;
-  /** 用户权限 */
-  Set<String> permissions;
   /** 租户名称 */
   String tenantName;
   /** 租户id */
   String tenantId;
+  /** 用户权限 */
+  Set<String> permissions;
+  /** 额外参数 */
+  Map<String, Object> claims = new HashMap<>();
   /** 令牌 */
   String token;
 
   @JsonIgnore
+  public Object getClaim(String claimKey) {
+    return claims == null ? null : claims.get(claimKey);
+  }
+
+  @JsonIgnore
+  public String getClaimAsStr(String claimKey) {
+    return claims == null ? null : claims.get(claimKey).toString();
+  }
+
+  @JsonIgnore
+  public Long getClaimAsLong(String claimKey) {
+    return claims == null ? null : Long.valueOf(claims.get(claimKey).toString());
+  }
+
+  @JsonIgnore
   public Long getIdAsLong() {
-    return Long.valueOf(id);
+    return id == null ? null : Long.valueOf(id);
   }
 
   @JsonIgnore
   public Long getTenantIdAsLong() {
-    return Long.valueOf(tenantId);
+    return tenantId == null ? null : Long.valueOf(tenantId);
+  }
+
+  public AuthUser copy() {
+    Set<String> clonePermission = new HashSet<>();
+    Run.notEmpty(permissions, clonePermission::addAll);
+    Map<String, Object> cloneClaims = new HashMap<>();
+    Run.notEmpty(claims, cloneClaims::putAll);
+    return AuthUser.builder()
+        .id(id)
+        .nickName(nickName)
+        .fullName(fullName)
+        .phone(phone)
+        .email(email)
+        .avatarUrl(avatarUrl)
+        .signTime(signTime)
+        .refreshTime(refreshTime)
+        .tenantId(tenantId)
+        .tenantName(tenantName)
+        .permissions(clonePermission)
+        .claims(cloneClaims)
+        .token(token)
+        .build();
   }
 
   public static AuthUser.Builder builder() {
@@ -141,6 +179,16 @@ public class AuthUser implements Serializable {
 
     public Builder token(String token) {
       authUser.setToken(token);
+      return this;
+    }
+
+    public Builder claims(Map<String, Object> map) {
+      authUser.claims = map;
+      return this;
+    }
+
+    public Builder withClaim(String key, String value) {
+      authUser.claims.put(key, value);
       return this;
     }
 

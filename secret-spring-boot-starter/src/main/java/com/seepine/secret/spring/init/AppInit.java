@@ -1,7 +1,8 @@
 package com.seepine.secret.spring.init;
 
 import com.seepine.secret.AuthUtil;
-import com.seepine.secret.interfaces.AuthService;
+import com.seepine.secret.interfaces.CacheService;
+import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.spring.properties.AuthPropertiesImpl;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -15,11 +16,12 @@ import javax.annotation.Resource;
  */
 @Component
 public class AppInit implements ApplicationRunner {
-  @Resource AuthService authService;
+  @Resource TokenService authService;
+  @Resource CacheService cacheService;
   @Resource AuthPropertiesImpl authProperties;
 
   @Override
   public void run(ApplicationArguments args) {
-    AuthUtil.init(authProperties, authService);
+    AuthUtil.init(authProperties, authService, cacheService);
   }
 }

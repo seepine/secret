@@ -1,7 +1,9 @@
 package com.seepine.secret.quarkus.runtime.config;
 
-import com.seepine.secret.impl.DefaultAuthServiceImpl;
-import com.seepine.secret.interfaces.AuthService;
+import com.seepine.secret.impl.DefaultCacheServiceImpl;
+import com.seepine.secret.impl.DefaultTokenServiceImpl;
+import com.seepine.secret.interfaces.CacheService;
+import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import io.quarkus.arc.DefaultBean;
 
@@ -18,7 +20,14 @@ public class SecretConfig {
   @Produces
   @DefaultBean
   @Singleton
-  public AuthService authService() {
-    return new DefaultAuthServiceImpl(authProperties);
+  public TokenService tokenService() {
+    return new DefaultTokenServiceImpl(authProperties);
+  }
+
+  @Produces
+  @DefaultBean
+  @Singleton
+  public CacheService cacheService() {
+    return new DefaultCacheServiceImpl();
   }
 }
