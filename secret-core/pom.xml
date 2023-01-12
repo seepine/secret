@@ -30,14 +30,15 @@
 			<version>${tool.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.seepine</groupId>
-			<artifactId>json</artifactId>
-			<version>${json.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
 			<version>${jwt.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.13.3</version>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 </project>
