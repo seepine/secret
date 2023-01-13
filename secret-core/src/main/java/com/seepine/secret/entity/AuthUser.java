@@ -45,6 +45,12 @@ public class AuthUser implements Serializable {
   String token;
 
   @JsonIgnore
+  public AuthUser withClaim(String key, String value) {
+    claims.put(key, value);
+    return this;
+  }
+
+  @JsonIgnore
   public Object getClaimAsObj(String claimKey) {
     if (claims == null) {
       return null;
