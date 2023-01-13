@@ -45,18 +45,41 @@ public class AuthUser implements Serializable {
   String token;
 
   @JsonIgnore
-  public Object getClaim(String claimKey) {
-    return claims == null ? null : claims.get(claimKey);
+  public Object getClaimAsObj(String claimKey) {
+    if (claims == null) {
+      return null;
+    }
+    return claims.get(claimKey);
   }
 
   @JsonIgnore
-  public String getClaimAsStr(String claimKey) {
-    return claims == null ? null : claims.get(claimKey).toString();
+  public String getClaim(String claimKey) {
+    return (String) getClaimAsObj(claimKey);
+  }
+
+  @JsonIgnore
+  public Integer getClaimAsInt(String claimKey) {
+    return (Integer) getClaimAsObj(claimKey);
+  }
+
+  @JsonIgnore
+  public Double getClaimAsDouble(String claimKey) {
+    return (Double) getClaimAsObj(claimKey);
+  }
+
+  @JsonIgnore
+  public Boolean getClaimAsBool(String claimKey) {
+    return (Boolean) getClaimAsObj(claimKey);
   }
 
   @JsonIgnore
   public Long getClaimAsLong(String claimKey) {
-    return claims == null ? null : Long.valueOf(claims.get(claimKey).toString());
+    return (Long) getClaimAsObj(claimKey);
+  }
+
+  @JsonIgnore
+  public Date getClaimAsDate(String claimKey) {
+    return (Date) getClaimAsObj(claimKey);
   }
 
   @JsonIgnore
@@ -70,9 +93,9 @@ public class AuthUser implements Serializable {
   }
 
   public AuthUser copy() {
-    Set<String> clonePermission = new HashSet<>();
+    Set<String> clonePermission = new HashSet<>(16);
     Run.notEmpty(permissions, clonePermission::addAll);
-    Map<String, Object> cloneClaims = new HashMap<>();
+    Map<String, Object> cloneClaims = new HashMap<>(16);
     Run.notEmpty(claims, cloneClaims::putAll);
     return AuthUser.builder()
         .id(id)
@@ -182,12 +205,37 @@ public class AuthUser implements Serializable {
       return this;
     }
 
-    public Builder claims(Map<String, Object> map) {
-      authUser.claims = map;
+    public Builder claims(Map<String, Object> claims) {
+      authUser.claims = claims;
       return this;
     }
 
     public Builder withClaim(String key, String value) {
+      authUser.claims.put(key, value);
+      return this;
+    }
+
+    public Builder withClaim(String key, Boolean value) {
+      authUser.claims.put(key, value);
+      return this;
+    }
+
+    public Builder withClaim(String key, Integer value) {
+      authUser.claims.put(key, value);
+      return this;
+    }
+
+    public Builder withClaim(String key, Long value) {
+      authUser.claims.put(key, value);
+      return this;
+    }
+
+    public Builder withClaim(String key, Double value) {
+      authUser.claims.put(key, value);
+      return this;
+    }
+
+    public Builder withClaim(String key, Date value) {
       authUser.claims.put(key, value);
       return this;
     }

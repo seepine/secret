@@ -57,7 +57,13 @@ public class DefaultTokenServiceImpl implements TokenService {
       Run.notEmpty(authUser.getRefreshTime(), val -> jwtBuilder.withClaim("refreshTime", val));
       Run.notEmpty(authUser.getTenantName(), val -> jwtBuilder.withClaim("tenantName", val));
       Run.notEmpty(authUser.getTenantId(), val -> jwtBuilder.withClaim("tenantId", val));
-      Run.notEmpty(authUser.getClaims(), val -> jwtBuilder.withClaim("claims", val));
+      try {
+        Run.notEmpty(authUser.getClaims(), val -> jwtBuilder.withClaim("claims", val));
+      } catch (IllegalArgumentException ignore) {
+        throw new IllegalArgumentException(
+            "Expected authUser claims containing Boolean, Integer, Long, Double, String and Date. Your claims: "
+                + authUser.getClaims().toString());
+      }
       String token = jwtBuilder.sign(algorithm);
       // 单独设置permissions到缓存，避免写入到jwt请求头过长
       AuthUtil.getCacheService()
