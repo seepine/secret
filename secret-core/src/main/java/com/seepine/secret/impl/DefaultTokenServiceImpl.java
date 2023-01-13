@@ -14,12 +14,12 @@ import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
-import com.seepine.secret.util.CacheUtil;
 import com.seepine.tool.Run;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author seepine
@@ -30,6 +30,7 @@ public class DefaultTokenServiceImpl implements TokenService {
   private final AuthProperties authProperties;
   private final JWTVerifier verifier;
   private static final String BLACK_PRE = "secret_blacklist:";
+  private static final String WHITE_PRE = "secret_whitelist:";
   private static final String PERMISSION_PRE = "permissions:";
 
   public DefaultTokenServiceImpl(AuthProperties authProperties) {
@@ -71,6 +72,14 @@ public class DefaultTokenServiceImpl implements TokenService {
               authProperties.getCachePrefix() + PERMISSION_PRE + token,
               authUser.getPermissions(),
               authProperties.getExpiresAt() > 0 ? authProperties.getExpiresAt() * 1000 : 0);
+      // 如果开启白名单，保存token
+      if (authProperties.getEnableWhitelist()) {
+        AuthUtil.getCacheService()
+            .setCache(
+                authProperties.getCachePrefix() + WHITE_PRE + token,
+                token,
+                authProperties.getExpiresAt() > 0 ? authProperties.getExpiresAt() * 1000 : 0);
+      }
       return token;
     } catch (JWTCreationException exception) {
       throw new AuthException(AuthExceptionType.GENERATE_TOKEN_FAIL);
@@ -78,12 +87,24 @@ public class DefaultTokenServiceImpl implements TokenService {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public AuthUser analyze(String token) throws AuthException {
     try {
-      if (AuthUtil.getCacheService().getCache(BLACK_PRE + token) != null) {
+      if (AuthUtil.getCacheService().getCache(authProperties.getCachePrefix() + BLACK_PRE + token)
+          != null) {
         throw new AuthException(AuthExceptionType.INVALID_TOKEN);
       }
+      // 如果开启白名单，需要判断token是否存在
+      if (authProperties.getEnableWhitelist()) {
+        if (AuthUtil.getCacheService().getCache(authProperties.getCachePrefix() + WHITE_PRE + token)
+            == null) {
+          throw new AuthException(AuthExceptionType.INVALID_TOKEN);
+        }
+      }
       DecodedJWT decodedJwt = verifier.verify(token);
+      Object permissions =
+          AuthUtil.getCacheService()
+              .getCache(authProperties.getCachePrefix() + PERMISSION_PRE + token);
       return AuthUser.builder()
           .id(decodedJwt.getClaim("id").asString())
           .nickName(decodedJwt.getClaim("nickName").asString())
@@ -95,9 +116,7 @@ public class DefaultTokenServiceImpl implements TokenService {
           .refreshTime(decodedJwt.getClaim("refreshTime").asLong())
           .tenantId(decodedJwt.getClaim("tenantId").asString())
           .tenantName(decodedJwt.getClaim("tenantName").asString())
-          .permissions(
-              Run.require(
-                  CacheUtil.get(authProperties.getCachePrefix() + token), new HashSet<>(16)))
+          .permissions(permissions != null ? (Set<String>) permissions : new HashSet<>(16))
           .claims(Run.require(decodedJwt.getClaim("claims").asMap(), new HashMap<>(16)))
           .token(token)
           .build();
@@ -112,7 +131,10 @@ public class DefaultTokenServiceImpl implements TokenService {
 
   @Override
   public void clear(String token) {
-    AuthUtil.getCacheService().remove(authProperties.getCachePrefix() + token);
+    // 如果开启白名单，退出登录时需清除
+    if (authProperties.getEnableWhitelist()) {
+      AuthUtil.getCacheService().remove(authProperties.getCachePrefix() + WHITE_PRE + token);
+    }
     AuthUtil.getCacheService()
         .setCache(
             BLACK_PRE + token,

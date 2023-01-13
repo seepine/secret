@@ -14,7 +14,8 @@ public class AuthProperties {
   String secret = "com.seepine.secret";
   /** 默认jwt的issuer */
   String issuer = "secret";
-
+  /** 是否启用白名单模式 */
+  Boolean enableWhitelist = false;
   /** 拦截器排除的pathPatterns */
   String[] excludePathPatterns = new String[] {};
   /** 拦截器默认排除的pathPatterns */

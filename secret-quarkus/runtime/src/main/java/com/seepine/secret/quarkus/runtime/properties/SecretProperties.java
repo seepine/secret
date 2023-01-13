@@ -20,4 +20,7 @@ public class SecretProperties {
   /** 默认jwt的issuer */
   @ConfigProperty(defaultValue = "secret")
   public String issuer;
+  /** 默认jwt的issuer */
+  @ConfigProperty(name = "enable-whitelist", defaultValue = "false")
+  public Boolean enableWhitelist;
 }
