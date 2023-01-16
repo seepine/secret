@@ -1,5 +1,7 @@
 package com.seepine.secret.spring.interceptor;
 
+import com.seepine.secret.annotation.Permission;
+import com.seepine.secret.annotation.PermissionPrefix;
 import com.seepine.secret.util.PermissionUtil;
 import org.springframework.lang.NonNull;
 import org.springframework.web.method.HandlerMethod;
@@ -27,7 +29,15 @@ public class PermissionInterceptor implements HandlerInterceptor {
     }
     HandlerMethod handlerMethod = (HandlerMethod) handler;
     Method method = handlerMethod.getMethod();
-    PermissionUtil.verify(method);
+    Permission permission = PermissionUtil.getPermission(method);
+    if (permission != null) {
+      PermissionPrefix prefix = handlerMethod.getBeanType().getAnnotation(PermissionPrefix.class);
+      PermissionUtil.verify(
+          permission,
+          prefix == null
+              ? method.getDeclaringClass().getAnnotation(PermissionPrefix.class)
+              : prefix);
+    }
     return true;
   }
 }

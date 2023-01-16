@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * @since 2.0.0
  */
 public class PermissionUtil {
-  public static void verify(Method method) {
+  public static Permission getPermission(Method method) {
     Permission permission = null;
     if (method.isAnnotationPresent(Permission.class)) {
       permission = method.getAnnotation(Permission.class);
@@ -34,14 +34,7 @@ public class PermissionUtil {
       } catch (NoSuchMethodException ignored) {
       }
     }
-    if (permission != null) {
-      PermissionPrefix prefix = method.getAnnotation(PermissionPrefix.class);
-      PermissionUtil.verify(
-          permission,
-          prefix == null
-              ? method.getDeclaringClass().getAnnotation(PermissionPrefix.class)
-              : prefix);
-    }
+    return permission;
   }
 
   public static void verify(Permission permission, PermissionPrefix permissionPrefix) {
