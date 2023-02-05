@@ -5,7 +5,7 @@ import com.seepine.secret.annotation.Expose;
 import com.seepine.secret.annotation.NotExpose;
 import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
-import com.seepine.tool.util.StrUtil;
+import com.seepine.tool.util.Objects;
 
 import java.lang.reflect.Method;
 /**
@@ -17,7 +17,7 @@ public class TokenUtil {
   private static final String HEADER_PREFIX = "Bearer ";
 
   public static boolean filter(Method method, String token) {
-    if (StrUtil.isNotEmpty(token) && token.startsWith(HEADER_PREFIX)) {
+    if (Objects.nonEmpty(token) && token.startsWith(HEADER_PREFIX)) {
       token = token.substring(7);
     }
     boolean isFindAndFill = AuthUtil.findAndFill(token);
@@ -27,7 +27,7 @@ public class TokenUtil {
       return true;
     }
     // token is blank, Not Acceptable
-    if (StrUtil.isBlank(token)) {
+    if (Objects.isBlank(token)) {
       throw new AuthException(AuthExceptionType.NOT_TOKEN);
     }
     // has token but can not get user info, Unauthorized

@@ -33,5 +33,5 @@ public class LogEvent {
   /** 异常时堆栈信息 */
   String exceptionStackTrace;
   /** 用户信息，可能为空 */
-  Object user;
+  AuthUser user;
 }

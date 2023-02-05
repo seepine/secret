@@ -5,7 +5,7 @@ import com.seepine.secret.annotation.Permission;
 import com.seepine.secret.annotation.PermissionPrefix;
 import com.seepine.secret.enums.AuthExceptionType;
 import com.seepine.secret.exception.AuthException;
-import com.seepine.tool.util.StrUtil;
+import com.seepine.tool.util.Objects;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -43,7 +43,7 @@ public class PermissionUtil {
     // 如果类上有前缀注解，并且值不为空串，并且权限注解prefix为true，表示需要拼接前缀
     boolean hasPrefix =
         permissionPrefix != null
-            && StrUtil.isNotBlank(permissionPrefix.value())
+            && Objects.nonBlank(permissionPrefix.value())
             && permission.prefix();
 
     // 1.校验必须包含的权限

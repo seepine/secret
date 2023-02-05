@@ -100,9 +100,9 @@ public class AuthUser implements Serializable {
 
   public AuthUser copy() {
     Set<String> clonePermission = new HashSet<>(16);
-    Run.notEmpty(permissions, clonePermission::addAll);
+    Run.nonEmpty(permissions, clonePermission::addAll);
     Map<String, Object> cloneClaims = new HashMap<>(16);
-    Run.notEmpty(claims, cloneClaims::putAll);
+    Run.nonEmpty(claims, cloneClaims::putAll);
     return AuthUser.builder()
         .id(id)
         .nickName(nickName)

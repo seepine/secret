@@ -7,7 +7,7 @@ import com.seepine.secret.interfaces.CacheService;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.tool.util.CurrentTimeMillis;
-import com.seepine.tool.util.StrUtil;
+import com.seepine.tool.util.Objects;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -115,7 +115,7 @@ public class AuthUtil {
    */
   public static boolean findAndFill(String token) {
     // 设置token
-    if (StrUtil.isBlank(token)) {
+    if (Objects.isBlank(token)) {
       return false;
     }
     try {

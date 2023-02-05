@@ -13,7 +13,7 @@
 	<name>secret-core</name>
 
 	<properties>
-		<tool.version>0.0.10</tool.version>
+		<tool.version>0.2.0</tool.version>
 		<json.version>0.1.0</json.version>
 		<jwt.version>4.2.1</jwt.version>
 	</properties>

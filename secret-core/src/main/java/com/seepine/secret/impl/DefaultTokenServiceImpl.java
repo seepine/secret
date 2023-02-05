@@ -15,6 +15,7 @@ import com.seepine.secret.exception.AuthException;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.tool.Run;
+import com.seepine.tool.util.Objects;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -48,18 +49,18 @@ public class DefaultTokenServiceImpl implements TokenService {
       if (authProperties.getExpiresAt() > 0) {
         jwtBuilder.withExpiresAt(now.plusSeconds(authProperties.getExpiresAt()));
       }
-      Run.notEmpty(authUser.getId(), val -> jwtBuilder.withClaim("id", val));
-      Run.notEmpty(authUser.getNickName(), val -> jwtBuilder.withClaim("nickName", val));
-      Run.notEmpty(authUser.getFullName(), val -> jwtBuilder.withClaim("fullName", val));
-      Run.notEmpty(authUser.getPhone(), val -> jwtBuilder.withClaim("phone", val));
-      Run.notEmpty(authUser.getEmail(), val -> jwtBuilder.withClaim("email", val));
-      Run.notEmpty(authUser.getAvatarUrl(), val -> jwtBuilder.withClaim("avatarUrl", val));
-      Run.notEmpty(authUser.getSignTime(), val -> jwtBuilder.withClaim("signTime", val));
-      Run.notEmpty(authUser.getRefreshTime(), val -> jwtBuilder.withClaim("refreshTime", val));
-      Run.notEmpty(authUser.getTenantName(), val -> jwtBuilder.withClaim("tenantName", val));
-      Run.notEmpty(authUser.getTenantId(), val -> jwtBuilder.withClaim("tenantId", val));
+      Run.nonEmpty(authUser.getId(), val -> jwtBuilder.withClaim("id", val));
+      Run.nonEmpty(authUser.getNickName(), val -> jwtBuilder.withClaim("nickName", val));
+      Run.nonEmpty(authUser.getFullName(), val -> jwtBuilder.withClaim("fullName", val));
+      Run.nonEmpty(authUser.getPhone(), val -> jwtBuilder.withClaim("phone", val));
+      Run.nonEmpty(authUser.getEmail(), val -> jwtBuilder.withClaim("email", val));
+      Run.nonEmpty(authUser.getAvatarUrl(), val -> jwtBuilder.withClaim("avatarUrl", val));
+      Run.nonEmpty(authUser.getSignTime(), val -> jwtBuilder.withClaim("signTime", val));
+      Run.nonEmpty(authUser.getRefreshTime(), val -> jwtBuilder.withClaim("refreshTime", val));
+      Run.nonEmpty(authUser.getTenantName(), val -> jwtBuilder.withClaim("tenantName", val));
+      Run.nonEmpty(authUser.getTenantId(), val -> jwtBuilder.withClaim("tenantId", val));
       try {
-        Run.notEmpty(authUser.getClaims(), val -> jwtBuilder.withClaim("claims", val));
+        Run.nonEmpty(authUser.getClaims(), val -> jwtBuilder.withClaim("claims", val));
       } catch (IllegalArgumentException ignore) {
         throw new IllegalArgumentException(
             "Expected authUser claims containing Boolean, Integer, Long, Double, String and Date. Your claims: "
@@ -117,7 +118,7 @@ public class DefaultTokenServiceImpl implements TokenService {
           .tenantId(decodedJwt.getClaim("tenantId").asString())
           .tenantName(decodedJwt.getClaim("tenantName").asString())
           .permissions(permissions != null ? (Set<String>) permissions : new HashSet<>(16))
-          .claims(Run.require(decodedJwt.getClaim("claims").asMap(), new HashMap<>(16)))
+          .claims(Objects.require(decodedJwt.getClaim("claims").asMap(), new HashMap<>(16)))
           .token(token)
           .build();
     } catch (IncorrectClaimException e) {

@@ -4,7 +4,8 @@ import com.seepine.secret.AuthUtil;
 import com.seepine.secret.annotation.Log;
 import com.seepine.secret.entity.LogEvent;
 import com.seepine.secret.exception.AuthException;
-import com.seepine.tool.util.StrUtil;
+import com.seepine.tool.Run;
+import com.seepine.tool.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -24,7 +25,7 @@ public class LogUtil {
   public static LogEvent gen(Log log, Long executionTime, Throwable exception) {
     return gen(
         log.module(),
-        StrUtil.isBlank(log.title()) ? log.value() : log.title(),
+        Objects.isBlank(log.title()) ? log.value() : log.title(),
         log.content(),
         executionTime,
         exception);
@@ -99,12 +100,13 @@ public class LogUtil {
     StringBuilder str = new StringBuilder();
     while (headers.hasMoreElements()) {
       String header = headers.nextElement();
-      if (StrUtil.isNotBlank(header)) {
-        String headerValue = request.getHeader(header);
-        if (StrUtil.isNotBlank(headerValue)) {
-          str.append(header).append(COLON).append(SPACE).append(headerValue).append(LF);
-        }
+      if (Objects.isBlank(header)) {
+        continue;
       }
+      Run.nonBlank(
+          request.getHeader(header),
+          headerValue ->
+              str.append(header).append(COLON).append(SPACE).append(headerValue).append(LF));
     }
     return str.length() > 0 ? str.substring(0, str.length() - 1) : str.toString();
   }
