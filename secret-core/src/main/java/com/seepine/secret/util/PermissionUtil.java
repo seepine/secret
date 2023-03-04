@@ -38,6 +38,9 @@ public class PermissionUtil {
   }
 
   public static void verify(Permission permission, PermissionPrefix permissionPrefix) {
+    if (permission == null) {
+      return;
+    }
     Set<String> permissions = AuthUtil.getPermissions();
 
     // 如果类上有前缀注解，并且值不为空串，并且权限注解prefix为true，表示需要拼接前缀
