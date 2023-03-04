@@ -60,27 +60,41 @@ public class AuthUser implements Serializable {
 
   @JsonIgnore
   public String getClaim(String claimKey) {
-    return (String) getClaimAsObj(claimKey);
+    Object val = getClaimAsObj(claimKey);
+    if (val == null) {
+      return null;
+    }
+    if (val instanceof String) {
+      return (String) val;
+    }
+    return val.toString();
   }
 
   @JsonIgnore
   public Integer getClaimAsInt(String claimKey) {
-    return (Integer) getClaimAsObj(claimKey);
+    return Integer.valueOf(getClaim(claimKey));
   }
 
   @JsonIgnore
   public Double getClaimAsDouble(String claimKey) {
-    return (Double) getClaimAsObj(claimKey);
+    return Double.valueOf(getClaim(claimKey));
   }
 
   @JsonIgnore
   public Boolean getClaimAsBool(String claimKey) {
-    return (Boolean) getClaimAsObj(claimKey);
+    String val = getClaim(claimKey);
+    if ("true".equals(val) || "1".equals(val)) {
+      return true;
+    }
+    if ("false".equals(val) || "0".equals(val)) {
+      return false;
+    }
+    throw new ClassCastException(val + " cannot be cast to class java.lang.Boolean");
   }
 
   @JsonIgnore
   public Long getClaimAsLong(String claimKey) {
-    return (Long) getClaimAsObj(claimKey);
+    return Long.valueOf(getClaim(claimKey));
   }
 
   @JsonIgnore
