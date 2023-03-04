@@ -5,6 +5,7 @@
 
 # Separate configuration for files without suffix
 LICENSE text eol=lf
+mvnw text eol=lf
 
 # These files are binary and should be left untouched
 # (binary is a macro for -text -diff)
