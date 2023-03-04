@@ -52,6 +52,7 @@ public class DefaultTokenServiceImpl implements TokenService {
       Run.nonEmpty(authUser.getId(), val -> jwtBuilder.withClaim("id", val));
       Run.nonEmpty(authUser.getNickName(), val -> jwtBuilder.withClaim("nickName", val));
       Run.nonEmpty(authUser.getFullName(), val -> jwtBuilder.withClaim("fullName", val));
+      Run.nonEmpty(authUser.getUsername(), val -> jwtBuilder.withClaim("username", val));
       Run.nonEmpty(authUser.getPhone(), val -> jwtBuilder.withClaim("phone", val));
       Run.nonEmpty(authUser.getEmail(), val -> jwtBuilder.withClaim("email", val));
       Run.nonEmpty(authUser.getAvatarUrl(), val -> jwtBuilder.withClaim("avatarUrl", val));
@@ -110,6 +111,7 @@ public class DefaultTokenServiceImpl implements TokenService {
           .id(decodedJwt.getClaim("id").asString())
           .nickName(decodedJwt.getClaim("nickName").asString())
           .fullName(decodedJwt.getClaim("fullName").asString())
+          .username(decodedJwt.getClaim("username").asString())
           .phone(decodedJwt.getClaim("phone").asString())
           .email(decodedJwt.getClaim("email").asString())
           .avatarUrl(decodedJwt.getClaim("avatarUrl").asString())

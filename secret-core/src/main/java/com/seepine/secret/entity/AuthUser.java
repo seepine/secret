@@ -23,6 +23,8 @@ public class AuthUser implements Serializable {
   String nickName;
   /** 姓名 */
   String fullName;
+  /** 用户名 */
+  String username;
   /** 手机号 */
   String phone;
   /** 电子邮箱 */
@@ -121,6 +123,7 @@ public class AuthUser implements Serializable {
         .id(id)
         .nickName(nickName)
         .fullName(fullName)
+        .username(username)
         .phone(phone)
         .email(email)
         .avatarUrl(avatarUrl)
@@ -167,6 +170,11 @@ public class AuthUser implements Serializable {
 
     public Builder fullName(String fullName) {
       authUser.setFullName(fullName);
+      return this;
+    }
+
+    public Builder username(String username) {
+      authUser.setUsername(username);
       return this;
     }
 
