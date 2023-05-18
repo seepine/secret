@@ -53,6 +53,36 @@ public class AuthUser implements Serializable {
   }
 
   @JsonIgnore
+  public AuthUser withClaim(String key, Boolean value) {
+    claims.put(key, value);
+    return this;
+  }
+
+  @JsonIgnore
+  public AuthUser withClaim(String key, Integer value) {
+    claims.put(key, value);
+    return this;
+  }
+
+  @JsonIgnore
+  public AuthUser withClaim(String key, Long value) {
+    claims.put(key, value);
+    return this;
+  }
+
+  @JsonIgnore
+  public AuthUser withClaim(String key, Double value) {
+    claims.put(key, value);
+    return this;
+  }
+
+  @JsonIgnore
+  public AuthUser withClaim(String key, Date value) {
+    claims.put(key, value);
+    return this;
+  }
+
+  @JsonIgnore
   public Object getClaimAsObj(String claimKey) {
     if (claims == null) {
       return null;
