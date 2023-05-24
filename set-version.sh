@@ -1,1 +1,1 @@
-mvn versions:set -DnewVersion=$1
+./mvnw versions:set -DnewVersion=$1
