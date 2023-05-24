@@ -1,6 +1,6 @@
 # secret
 
-极简安全框架，支持SpringBoot、Quarkus
+极简安全框架，支持 SpringBoot2.x、SpringBoot3.x、Quarkus3.x
 
 ## 一、集成
 
@@ -29,15 +29,13 @@ public class Controller {
   @GetMapping("/login/{username}/{password}")
   public AuthUser login(@PathVariable String username, @PathVariable String password) {
     AuthUser user = userService.getByUsername(username, password);
-    // 通过login方法会自动填充token属性 {id,nickName,token...}
     return AuthUtil.login(user);
   }
 
   @Expose
   @GetMapping("/login/{code}")
-  public MyAuthUser login(@PathVariable String code) {
-    // class MyAuthUser extend AuthUser{ 扩展自己想要的字段 }
-    MyAuthUser myUser = userService.getByCode(code);
+  public AuthUser login(@PathVariable String code) {
+    AuthUser myUser = userService.getByCode(code);
     return AuthUtil.login(myUser);
   }
 }
@@ -79,8 +77,8 @@ public class Controller {
 
 ```yml
 secret:
-  # jwt token有效期，单位秒，默认3天
-  expires-at: 259200
+  # jwt token有效期，单位秒，默认12小时
+  expires-second: 43200
   # jwt颁发者
   issuer: secret
   # jwt HS256密钥
@@ -89,7 +87,7 @@ secret:
 
 ### 5.自定义token生成解析逻辑
 
-以 `SpringBoot` 为例，实现 `AuthService` 并注入bean即可
+以 `SpringBoot` 为例，实现 `TokenService` 并注入bean即可
 
 ```java
 
@@ -100,45 +98,42 @@ public class Config {
   private AuthProperties authProperties;
 
   @Bean
-  public AuthService authService() {
+  public TokenService tokenService() {
     return new CustomAuthService(authProperties);
   }
 }
 ```
 
-## 三、接口鉴权
+## 三、接口权限限制
 
-> @Permission/@PrePermission
+> @Permission
 
-使用接口鉴权注解时，需要在登陆时传入用户所拥有的权限list，例如
+使用接口鉴权注解时，需要在登陆时传入用户所拥有的权限sets，例如
 
 ```java
 class Controller {
 
   @Expose
-  @GetMapping("/login/{username}/{password}")
-  public AuthUser login(@PathVariable String username, @PathVariable String password) {
+  @GetMapping("/login")
+  public AuthUser login(String username, String password) {
     AuthUser user = userService.getByUsername(username, password);
-    Set<String> permissions = roleService.getByUserId(user.getId());
-    // user.setPermissions(permissions);
     // return AuthUtil.login(user);
+    Set<String> permissions = roleService.getByUserId(user.getId());
     return AuthUtil.login(user, permissions);
   }
 
 }
 ```
 
-或
+### 1.使用Permission
 
-```java
-```
-
-### 1.单独使用Permission
+> @Permission必须加在接口上
 
 ```java
 
 @RestController
 public class Controller {
+
   // 必须拥有 'add' 权限才可访问
   @Permission("add")
   @GetMapping("/add")
@@ -151,71 +146,21 @@ public class Controller {
   public void edit() {
   }
 
-  // 必须拥有 'edit' 和 'del' 权限才可访问
-  @Permission({"edit", "del"})
-  @GetMapping("/edit/and/del")
-  public void editAndDel() {
-  }
-
-  // 拥有 'del_all' 或者 'administrator' 权限即可访问
-  @Permission(or = {"del_all", "administrator"})
+  // 同时拥有 'del' 和 'del_all' 权限才能访问
+  @Permission({"del", "del_all"})
   @GetMapping("/del/all")
   public void delAll() {
   }
 
-
-  @Resource
-  Service service;
-
-  @GetMapping("/del/all")
-  public void func() {
-    //也会需要鉴权，可得知@Permission不仅仅可加在接口上，只要是ioc接管的都可以（原理使用aop实现）
-    service.func();
-  }
-
-}
-
-@Service
-class Service {
-  @Permission("service_permission_a")
-  public void func() {
+  // 拥有 'edit' 或 'del' 其中一个权限即可访问
+  @Permission(or = {"edit", "del"})
+  @GetMapping("/edit/and/del")
+  public void editAndDel() {
   }
 }
 ```
 
-### 2.使用PermissionPrefix为所有权限加上前缀
-
-正常使用场景中，一般的权限会如同`xxx_add`,`yyy_add`,`zzz_add`,`xxx_edit`
-这般，前面带有模块或业务的标识，当然使用`@Permission`
-直接指定具体权限也是可以的例如`@Permission("xxx_add")`，但是一般业务按Controller划分，同一个Controller中所有接口的权限前缀基本是相同的
-
-```java
-
-@PermissionPrefix("sys_user_")
-@RestController
-public class Controller {
-  // 必须拥有'sys_user_add'权限才可访问
-  @Permission("add")
-  @GetMapping("/add")
-  public void add() {
-  }
-
-  // 必须拥有'sys_user_edit'权限才可访问
-  @Permission("edit")
-  @GetMapping("/edit")
-  public void edit() {
-  }
-
-  // 必须拥有'sys_role_edit'权限才可访问
-  // prefix为false时，不会拼接类上@PermissionPrefix的前缀
-  @Permission(value = "sys_role_edit", prefix = false)
-  @GetMapping("/role/edit")
-  public void roleEdit() {
-  }
-}
-```
-
-### 3.也可在业务逻辑中判断
+### 2.也可在业务逻辑中判断
 
 ```java
 public class Service {
@@ -225,45 +170,85 @@ public class Service {
 }
 ```
 
-### 4.实现带鉴权功能的BaseController
+### 3.自定义权限缓存
 
-一般业务都会有crud接口，所以我们可以抽离出BaseController结合PermissionPrefix快速实现crud接口并且拥有接口鉴权功能
+默认缓存使用`com.seepine.tool.cache.Cache`,因此可通过增强`Cache`将缓存保存至`Redis`等实现持久化
 
-- BaseController
+也可实现 `PermissionService` 自定义权限获取，达到实时权限判断
 
 ```java
-public class BaseController<S, T> {
-  @Resource
-  S service;
-
-  @Permission("add")
-  @GetMapping("/add")
-  public void add(@RequestBody T entity) {
-    service.add(entity);
+public class CustomPermissionImpl implements PermissionService {
+  @Nonnull
+  @Override
+  public Set<String> get(@Nonnull AuthUser user) {
+    // 例如权限可通过登录者id实时去数据库获取等 
+    try {
+      return Objects.require(Cache.get(getCacheKey() + user.getId()), HashSet::new);
+    } catch (Exception e) {
+      return new HashSet<>();
+    }
   }
 
-  @Permission("edit")
-  @GetMapping("/edit")
-  public void edit() {
-    service.edit();
+  @Override
+  public void set(@Nonnull AuthUser user, @Nonnull Set<String> permissions) {
+    long delaySecond = 0;
+    if (user.getExpiresAt() != null) {
+      delaySecond = user.getExpiresAt() - user.getRefreshAt();
+    }
+    Cache.set(getCacheKey() + user.getId(), permissions, delaySecond * 1000);
+  }
+
+  private String getCacheKey() {
+    String prefix =
+      authProperties.getCachePrefix().endsWith(Strings.COLON)
+        ? authProperties.getCachePrefix()
+        : authProperties.getCachePrefix() + Strings.COLON;
+    return prefix + "permissions:";
   }
 }
 ```
 
-- UserController
+## 四、接口角色限制
+
+> @Role
+
+使用接口鉴权注解时，需要在登陆时传入用户所拥有的角色sets，例如
+
+```java
+class Controller {
+
+  @Expose
+  @GetMapping("/login")
+  public AuthUser login(String username, String password) {
+    AuthUser user = userService.getByUsername(username, password);
+    // return AuthUtil.login(user);
+    Set<String> roles = roleService.getByUserId(user.getId());
+    uset.setRoles(roles);
+    return AuthUtil.login(user, permissions);
+  }
+
+}
+```
+
+### 1.使用Roles
+
+> @Roles必须加在接口上
 
 ```java
 
 @RestController
-@PermissionPrefix("user_")
-@RequestMapping("user")
-public class UserController extends BaseController<UserService, User> {
+public class Controller {
+
+  // 必须拥有 'admin' 角色才能访问
+  @Permission("admin")
+  @GetMapping("/del/all")
+  public void delAll() {
+  }
+
 }
 ```
 
-此时实现了用户新增和编辑功能，并且新增和编辑需要拥有权限分别是`user_add`和`user_edit`，并且当重写父类方法时，权限注解仍然有效
-
-## 四、日志记录（暂只支持SpringBoot）
+## 五、日志记录（暂只支持SpringBoot）
 
 > @Log
 

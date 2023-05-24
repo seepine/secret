@@ -6,7 +6,6 @@ import java.lang.annotation.*;
  * 日志
  *
  * @author seepine
- * @since 2.0.0
  */
 @Documented
 @Target({ElementType.METHOD})

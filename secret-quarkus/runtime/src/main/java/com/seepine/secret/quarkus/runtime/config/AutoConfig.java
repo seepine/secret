@@ -3,27 +3,29 @@ package com.seepine.secret.quarkus.runtime.config;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.secret.quarkus.runtime.properties.SecretProperties;
 import io.quarkus.arc.DefaultBean;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.Produces;
 import org.eclipse.microprofile.config.inject.ConfigProperties;
 
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /**
  * @author seepine
  */
 public class AutoConfig {
-  @Inject @ConfigProperties SecretProperties secretProperties;
+	@Inject
+	@ConfigProperties
+	SecretProperties secretProperties;
 
-  @Produces
-  @DefaultBean
-  @Singleton
-  public AuthProperties authProperties() {
-    AuthProperties authProperties = new AuthProperties();
-    authProperties.setExpiresAt(secretProperties.expiresAt);
-    authProperties.setSecret(secretProperties.secret);
-    authProperties.setCachePrefix(secretProperties.cachePrefix);
-    authProperties.setIssuer(secretProperties.issuer);
-    return authProperties;
-  }
+	@Produces
+	@DefaultBean
+	@Singleton
+	public AuthProperties authProperties() {
+		AuthProperties authProperties = new AuthProperties();
+		authProperties.setExpiresSecond(secretProperties.expiresSecond);
+		authProperties.setSecret(secretProperties.secret);
+		authProperties.setCachePrefix(secretProperties.cachePrefix);
+		authProperties.setIssuer(secretProperties.issuer);
+		return authProperties;
+	}
 }

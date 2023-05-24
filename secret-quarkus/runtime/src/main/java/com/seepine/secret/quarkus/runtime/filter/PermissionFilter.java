@@ -1,15 +1,17 @@
 package com.seepine.secret.quarkus.runtime.filter;
 
+import com.seepine.secret.AuthUtil;
 import com.seepine.secret.annotation.Permission;
-import com.seepine.secret.annotation.PermissionPrefix;
+import com.seepine.secret.annotation.Role;
+import com.seepine.secret.util.AnnotationUtil;
 import com.seepine.secret.util.PermissionUtil;
-import io.quarkus.arc.Priority;
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.ext.Provider;
 
-import javax.inject.Inject;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.ext.Provider;
 import java.lang.reflect.Method;
 
 /**
@@ -20,20 +22,21 @@ import java.lang.reflect.Method;
 @Priority(Integer.MIN_VALUE + 100)
 @Provider
 public class PermissionFilter implements ContainerRequestFilter {
-  @Inject ResourceInfo resourceInfo;
+	@Inject
+	ResourceInfo resourceInfo;
 
-  @Override
-  public void filter(ContainerRequestContext containerRequestContext) {
-    Method method = resourceInfo.getResourceMethod();
-    Permission permission = PermissionUtil.getPermission(method);
-    if (permission != null) {
-      PermissionPrefix prefix =
-          resourceInfo.getResourceClass().getAnnotation(PermissionPrefix.class);
-      PermissionUtil.verify(
-          permission,
-          prefix == null
-              ? method.getDeclaringClass().getAnnotation(PermissionPrefix.class)
-              : prefix);
-    }
-  }
+	@Override
+	public void filter(ContainerRequestContext containerRequestContext) {
+		Method method = resourceInfo.getResourceMethod();
+		// 校验角色
+		Role role = AnnotationUtil.getAnnotation(method, Role.class);
+		if (role != null) {
+			PermissionUtil.verify(role.value(), role.or(), AuthUtil.getRoles());
+		}
+		// 校验权限
+		Permission permission = AnnotationUtil.getAnnotation(method, Permission.class);
+		if (permission != null) {
+			PermissionUtil.verify(permission.value(), permission.or(), AuthUtil.getPermissions());
+		}
+	}
 }

@@ -1,25 +1,21 @@
 package com.seepine.secret.properties;
 
-import lombok.Data;
 /**
  * @author seepine
  */
-@Data
 public class AuthProperties {
   /** token过期时间，单位秒，默认12小时 */
-  Long expiresAt = 12 * 60 * 60L;
+  private Long expiresSecond = 12 * 60 * 60L;
   /** 缓存前缀 */
-  String cachePrefix = "com.seepine.secret:";
+  private String cachePrefix = "com.seepine.secret:";
   /** 默认jwt加密密钥 */
-  String secret = "com.seepine.secret";
+  private String secret = "com.seepine.secret";
   /** 默认jwt的issuer */
-  String issuer = "secret";
-  /** 是否启用白名单模式 */
-  Boolean enableWhitelist = false;
+  private String issuer = "secret";
   /** 拦截器排除的pathPatterns */
-  String[] excludePathPatterns = new String[] {};
+  private String[] excludePathPatterns = new String[] {};
   /** 拦截器默认排除的pathPatterns */
-  String[] defaultExcludePathPatterns =
+  private String[] defaultExcludePathPatterns =
       new String[] {
         "/health",
         "/error",
@@ -31,4 +27,52 @@ public class AuthProperties {
         "/webjars/**",
         "/swagger-ui.html"
       };
+
+  public Long getExpiresSecond() {
+    return expiresSecond;
+  }
+
+  public void setExpiresSecond(Long expiresSecond) {
+    this.expiresSecond = expiresSecond;
+  }
+
+  public String getCachePrefix() {
+    return cachePrefix;
+  }
+
+  public void setCachePrefix(String cachePrefix) {
+    this.cachePrefix = cachePrefix;
+  }
+
+  public String getSecret() {
+    return secret;
+  }
+
+  public void setSecret(String secret) {
+    this.secret = secret;
+  }
+
+  public String getIssuer() {
+    return issuer;
+  }
+
+  public void setIssuer(String issuer) {
+    this.issuer = issuer;
+  }
+
+  public String[] getExcludePathPatterns() {
+    return excludePathPatterns;
+  }
+
+  public void setExcludePathPatterns(String[] excludePathPatterns) {
+    this.excludePathPatterns = excludePathPatterns;
+  }
+
+  public String[] getDefaultExcludePathPatterns() {
+    return defaultExcludePathPatterns;
+  }
+
+  public void setDefaultExcludePathPatterns(String[] defaultExcludePathPatterns) {
+    this.defaultExcludePathPatterns = defaultExcludePathPatterns;
+  }
 }
