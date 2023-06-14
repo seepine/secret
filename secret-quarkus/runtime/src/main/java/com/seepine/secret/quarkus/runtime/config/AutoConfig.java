@@ -25,7 +25,6 @@ public class AutoConfig {
 		authProperties.setExpiresSecond(secretProperties.expiresSecond);
 		authProperties.setSecret(secretProperties.secret);
 		authProperties.setCachePrefix(secretProperties.cachePrefix);
-		authProperties.setIssuer(secretProperties.issuer);
 		return authProperties;
 	}
 }

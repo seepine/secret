@@ -1,13 +1,13 @@
 package com.seepine.secret.spring.init;
 
 import com.seepine.secret.AuthUtil;
-import com.seepine.secret.interfaces.PermissionService;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.spring.properties.AuthPropertiesImpl;
-import javax.annotation.Resource;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 
 /**
  * 初始化
@@ -16,12 +16,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class AppInit implements ApplicationRunner {
-  @Resource TokenService authService;
-  @Resource PermissionService permissionService;
-  @Resource AuthPropertiesImpl authProperties;
+  @Resource
+  TokenService authService;
+
+  @Resource
+  AuthPropertiesImpl authProperties;
 
   @Override
   public void run(ApplicationArguments args) {
-    AuthUtil.init(authProperties, authService, permissionService);
+    AuthUtil.init(authProperties, authService);
   }
 }

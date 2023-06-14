@@ -22,21 +22,21 @@ import java.lang.reflect.Method;
 @Priority(Integer.MIN_VALUE + 100)
 @Provider
 public class PermissionFilter implements ContainerRequestFilter {
-	@Inject
-	ResourceInfo resourceInfo;
+  @Inject
+  ResourceInfo resourceInfo;
 
-	@Override
-	public void filter(ContainerRequestContext containerRequestContext) {
-		Method method = resourceInfo.getResourceMethod();
-		// 校验角色
-		Role role = AnnotationUtil.getAnnotation(method, Role.class);
-		if (role != null) {
-			PermissionUtil.verify(role.value(), role.or(), AuthUtil.getRoles());
-		}
-		// 校验权限
-		Permission permission = AnnotationUtil.getAnnotation(method, Permission.class);
-		if (permission != null) {
-			PermissionUtil.verify(permission.value(), permission.or(), AuthUtil.getPermissions());
-		}
-	}
+  @Override
+  public void filter(ContainerRequestContext containerRequestContext) {
+    Method method = resourceInfo.getResourceMethod();
+    // 校验角色
+    Role role = AnnotationUtil.getAnnotation(method, Role.class);
+    if (role != null) {
+      PermissionUtil.verify(AuthUtil.getRoles(), role.value(), role.or());
+    }
+    // 校验权限
+    Permission permission = AnnotationUtil.getAnnotation(method, Permission.class);
+    if (permission != null) {
+      PermissionUtil.verify(AuthUtil.getPermissions(), permission.value(), permission.or());
+    }
+  }
 }

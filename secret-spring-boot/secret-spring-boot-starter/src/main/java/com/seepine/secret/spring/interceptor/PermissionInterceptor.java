@@ -7,10 +7,11 @@ import com.seepine.secret.util.AnnotationUtil;
 import com.seepine.secret.util.PermissionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.lang.reflect.Method;
 import org.springframework.lang.NonNull;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+
+import java.lang.reflect.Method;
 
 /**
  * PermissionInterceptor
@@ -22,9 +23,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
   @Override
   public boolean preHandle(
-      @NonNull HttpServletRequest httpServletRequest,
-      @NonNull HttpServletResponse httpServletResponse,
-      @NonNull Object handler) {
+    @NonNull HttpServletRequest httpServletRequest,
+    @NonNull HttpServletResponse httpServletResponse,
+    @NonNull Object handler) {
     if (!(handler instanceof HandlerMethod handlerMethod)) {
       return true;
     }
@@ -32,12 +33,12 @@ public class PermissionInterceptor implements HandlerInterceptor {
     // 校验角色
     Role role = AnnotationUtil.getAnnotation(method, Role.class);
     if (role != null) {
-      PermissionUtil.verify(role.value(), role.or(), AuthUtil.getRoles());
+      PermissionUtil.verify(AuthUtil.getRoles(), role.value(), role.or());
     }
     // 校验权限
     Permission permission = AnnotationUtil.getAnnotation(method, Permission.class);
     if (permission != null) {
-      PermissionUtil.verify(permission.value(), permission.or(), AuthUtil.getPermissions());
+      PermissionUtil.verify(AuthUtil.getPermissions(), permission.value(), permission.or());
     }
     return true;
   }
