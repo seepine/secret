@@ -8,10 +8,8 @@ public class AuthProperties {
   private Long expiresSecond = 12 * 60 * 60L;
   /** 缓存前缀 */
   private String cachePrefix = "com.seepine.secret:";
-  /** 默认jwt加密密钥 */
-  private String secret = "com.seepine.secret";
-  /** 默认jwt的issuer */
-  private String issuer = "secret";
+  /** 默认生成token所用aes密钥 */
+  private String secret = "comseepinesecret";
   /** 拦截器排除的pathPatterns */
   private String[] excludePathPatterns = new String[] {};
   /** 拦截器默认排除的pathPatterns */
@@ -50,14 +48,6 @@ public class AuthProperties {
 
   public void setSecret(String secret) {
     this.secret = secret;
-  }
-
-  public String getIssuer() {
-    return issuer;
-  }
-
-  public void setIssuer(String issuer) {
-    this.issuer = issuer;
   }
 
   public String[] getExcludePathPatterns() {
