@@ -14,26 +14,23 @@ import java.lang.reflect.Method;
  * @author seepine
  */
 public class TokenUtil {
-	private static final String HEADER_PREFIX = "Bearer ";
+  private static final String HEADER_PREFIX = "Bearer ";
 
-	public static boolean filter(Method method, String token) throws UnauthorizedSecretException {
-		if (Objects.nonEmpty(token) && token.startsWith(HEADER_PREFIX)) {
-			token = token.substring(7);
-		}
-		boolean isFindAndFill = AuthUtil.findAndFill(token);
-		// not @NotExpose and has @Expose, pass
-		if (!AnnotationUtil.hasAnnotation(method, NotExpose.class)
-			&& AnnotationUtil.hasAnnotation(method, Expose.class)) {
-			return true;
-		}
-		// token is blank, Not Acceptable
-		if (Objects.isBlank(token)) {
-			throw new UnauthorizedSecretException();
-		}
-		// has token but can not get user info, Unauthorized
-		if (!isFindAndFill) {
-			throw new UnauthorizedSecretException();
-		}
-		return true;
-	}
+  public static boolean filter(Method method, String token) throws UnauthorizedSecretException {
+    if (Objects.nonEmpty(token) && token.startsWith(HEADER_PREFIX)) {
+      token = token.substring(7);
+    }
+    boolean isFindAndFill = AuthUtil.findAndFill(token);
+    // not @NotExpose and has @Expose, pass
+    boolean hasNotExpose = AnnotationUtil.hasAnnotation(method, NotExpose.class);
+    boolean hasExpose = AnnotationUtil.hasAnnotation(method, Expose.class);
+    if (!hasNotExpose && hasExpose) {
+      return true;
+    }
+    // has token but can not get user info, Unauthorized
+    if (!isFindAndFill) {
+      throw new UnauthorizedSecretException();
+    }
+    return true;
+  }
 }
