@@ -13,8 +13,7 @@
   <name>secret-core</name>
 
   <properties>
-    <tool.version>0.2.6</tool.version>
-    <jwt.version>4.4.0</jwt.version>
+    <tool.version>0.3.2</tool.version>
   </properties>
 
   <dependencies>
@@ -27,11 +26,6 @@
       <groupId>com.seepine</groupId>
       <artifactId>tool</artifactId>
       <version>${tool.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.auth0</groupId>
-      <artifactId>java-jwt</artifactId>
-      <version>${jwt.version}</version>
     </dependency>
   </dependencies>
 
