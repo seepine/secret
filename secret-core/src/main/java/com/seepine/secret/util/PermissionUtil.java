@@ -36,7 +36,7 @@ public class PermissionUtil {
 
   public static void verifyMust(Set<String> permissions, String[] must) {
     // 1.校验必须包含的权限
-    if (must == null) {
+    if (must == null || must.length == 0) {
       return;
     }
     for (String s : must) {
@@ -49,7 +49,7 @@ public class PermissionUtil {
 
   public static void verifyOr(Set<String> permissions, String[] or) {
     // 2.校验只需满足一个的权限
-    if (or == null) {
+    if (or == null || or.length == 0) {
       return;
     }
     for (String s : or) {
