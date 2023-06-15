@@ -4,7 +4,7 @@
 
   <groupId>com.seepine</groupId>
   <artifactId>secret-parent</artifactId>
-  <version>1.0.0-beta.32</version>
+  <version>1.0.0-beta.33</version>
   <modules>
     <module>secret-core</module>
     <module>secret-annotation</module>
