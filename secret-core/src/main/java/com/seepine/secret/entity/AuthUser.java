@@ -8,69 +8,39 @@ import java.util.*;
  */
 public class AuthUser implements Serializable {
   private static final long serialVersionUID = 0L;
-  /**
-   * 主键id
-   */
+  /** 主键id */
   private String id;
-  /**
-   * 昵称
-   */
+  /** 昵称 */
   private String nickName;
-  /**
-   * 姓名
-   */
+  /** 姓名 */
   private String fullName;
-  /**
-   * 用户名
-   */
+  /** 用户名 */
   private String username;
-  /**
-   * 手机号
-   */
+  /** 手机号 */
   private String phone;
-  /**
-   * 电子邮箱
-   */
+  /** 电子邮箱 */
   private String email;
-  /**
-   * 头像url
-   */
+  /** 头像url */
   private String avatarUrl;
-  /**
-   * 登录时间,自动生成,second
-   */
+  /** 登录时间,自动生成,second */
   private Long signAt;
-  /**
-   * 续期时间,自动生成,second
-   */
+  /** 续期时间,自动生成,second */
   private Long refreshAt;
-  /**
-   * 过期时间,null表示无过期，second
-   */
+  /** 过期时间,null表示无过期，second */
   private Long expiresAt;
-  /**
-   * 租户名称
-   */
+  /** 租户名称 */
   private String tenantName;
-  /**
-   * 租户id
-   */
+  /** 租户id */
   private String tenantId;
-  /**
-   * 额外参数
-   */
+  /** 平台 */
+  private String platform;
+  /** 额外参数 */
   private Map<String, Object> claims = new HashMap<>();
-  /**
-   * 用户角色
-   */
+  /** 用户角色 */
   private Set<String> roles;
-  /**
-   * 用户权限
-   */
+  /** 用户权限 */
   private Set<String> permissions;
-  /**
-   * 令牌
-   */
+  /** 令牌 */
   private String token;
 
   public String getId() {
@@ -178,6 +148,15 @@ public class AuthUser implements Serializable {
 
   public AuthUser setTenantId(String tenantId) {
     this.tenantId = tenantId;
+    return this;
+  }
+
+  public String getPlatform() {
+    return platform;
+  }
+
+  public AuthUser setPlatform(String platform) {
+    this.platform = platform;
     return this;
   }
 
@@ -308,49 +287,52 @@ public class AuthUser implements Serializable {
   @Override
   public String toString() {
     return "AuthUser{"
-      + "id='"
-      + id
-      + '\''
-      + ", nickName='"
-      + nickName
-      + '\''
-      + ", fullName='"
-      + fullName
-      + '\''
-      + ", username='"
-      + username
-      + '\''
-      + ", phone='"
-      + phone
-      + '\''
-      + ", email='"
-      + email
-      + '\''
-      + ", avatarUrl='"
-      + avatarUrl
-      + '\''
-      + ", signAt="
-      + signAt
-      + ", refreshAt="
-      + refreshAt
-      + ", expiresAt="
-      + expiresAt
-      + ", tenantName='"
-      + tenantName
-      + '\''
-      + ", tenantId='"
-      + tenantId
-      + '\''
-      + ", claims="
-      + claims
-      + ", roles="
-      + roles
-      + ", permissions="
-      + permissions
-      + ", token='"
-      + token
-      + '\''
-      + '}';
+        + "id='"
+        + id
+        + '\''
+        + ", nickName='"
+        + nickName
+        + '\''
+        + ", fullName='"
+        + fullName
+        + '\''
+        + ", username='"
+        + username
+        + '\''
+        + ", phone='"
+        + phone
+        + '\''
+        + ", email='"
+        + email
+        + '\''
+        + ", avatarUrl='"
+        + avatarUrl
+        + '\''
+        + ", signAt="
+        + signAt
+        + ", refreshAt="
+        + refreshAt
+        + ", expiresAt="
+        + expiresAt
+        + ", tenantName='"
+        + tenantName
+        + '\''
+        + ", tenantId='"
+        + tenantId
+        + '\''
+        + ", platform='"
+        + platform
+        + '\''
+        + ", claims="
+        + claims
+        + ", roles="
+        + roles
+        + ", permissions="
+        + permissions
+        + ", token='"
+        + token
+        + '\''
+        + '}';
   }
 
   public AuthUser copy() {
@@ -367,23 +349,24 @@ public class AuthUser implements Serializable {
       cloneClaims.putAll(claims);
     }
     return AuthUser.builder()
-      .id(id)
-      .nickName(nickName)
-      .fullName(fullName)
-      .username(username)
-      .phone(phone)
-      .email(email)
-      .avatarUrl(avatarUrl)
-      .signAt(signAt)
-      .refreshAt(refreshAt)
-      .expiresAt(expiresAt)
-      .tenantId(tenantId)
-      .tenantName(tenantName)
-      .roles(cloneRoles)
-      .permissions(clonePermissions)
-      .claims(cloneClaims)
-      .token(token)
-      .build();
+        .id(id)
+        .nickName(nickName)
+        .fullName(fullName)
+        .username(username)
+        .phone(phone)
+        .email(email)
+        .avatarUrl(avatarUrl)
+        .signAt(signAt)
+        .refreshAt(refreshAt)
+        .expiresAt(expiresAt)
+        .tenantId(tenantId)
+        .tenantName(tenantName)
+        .platform(platform)
+        .roles(cloneRoles)
+        .permissions(clonePermissions)
+        .claims(cloneClaims)
+        .token(token)
+        .build();
   }
 
   public static AuthUser.Builder builder() {
@@ -479,6 +462,11 @@ public class AuthUser implements Serializable {
 
     public Builder tenantName(String tenantName) {
       authUser.setTenantName(tenantName);
+      return this;
+    }
+
+    public Builder platform(String platform) {
+      authUser.setPlatform(platform);
       return this;
     }
 
