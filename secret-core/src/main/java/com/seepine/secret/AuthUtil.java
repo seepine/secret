@@ -1,5 +1,6 @@
 package com.seepine.secret;
 
+import com.alibaba.ttl.TransmittableThreadLocal;
 import com.seepine.secret.entity.AuthUser;
 import com.seepine.secret.exception.SecretException;
 import com.seepine.secret.exception.UnauthorizedSecretException;
@@ -9,23 +10,21 @@ import com.seepine.secret.util.PermissionUtil;
 import com.seepine.tool.Run;
 import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Objects;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author seepine
  */
 public class AuthUtil {
   private static final AuthUtil AUTH_UTIL = new AuthUtil();
-  private final ThreadLocal<AuthUser> authUserThreadLocal = new ThreadLocal<>();
+  private final ThreadLocal<AuthUser> authUserThreadLocal = new TransmittableThreadLocal<>();
   private AuthProperties authProperties;
   private TokenService tokenService;
 
-  protected AuthUtil() {
-  }
+  protected AuthUtil() {}
 
   public static void init(AuthProperties authProperties, TokenService tokenService) {
     AUTH_UTIL.authProperties = authProperties;
@@ -125,7 +124,7 @@ public class AuthUtil {
   /**
    * 登录成功后设置用户信息，并返回token
    *
-   * @param user          user
+   * @param user user
    * @param expiresSecond 过期时间(秒)
    * @return token
    */
@@ -137,7 +136,7 @@ public class AuthUtil {
   /**
    * 登录成功后设置用户信息，并返回token
    *
-   * @param user        user
+   * @param user user
    * @param permissions 用户权限
    * @return user with token
    */
@@ -149,26 +148,26 @@ public class AuthUtil {
   /**
    * 登录成功后设置用户信息，并返回token
    *
-   * @param user          user
-   * @param permissions   用户权限
+   * @param user user
+   * @param permissions 用户权限
    * @param expiresSecond 过期时间
    * @return user with token
    */
   @Nonnull
-  public static AuthUser login(@Nonnull AuthUser user, @Nullable Set<String> permissions, @Nullable Long expiresSecond) {
+  public static AuthUser login(
+      @Nonnull AuthUser user, @Nullable Set<String> permissions, @Nullable Long expiresSecond) {
     user.setPermissions(Objects.require(permissions, HashSet::new));
     user.setSignAt(CurrentTimeMillis.now() / 1000);
     user.setRefreshAt(user.getSignAt());
     Long expires = Objects.require(expiresSecond, getAuthProperties().getExpiresSecond());
-    Run.nonNull(expires, val -> {
-      if (val > 0) {
-        user.setExpiresAt(user.getRefreshAt() + val);
-      }
-    });
-    String token = AUTH_UTIL.tokenService.generate(user);
-    user.setToken(token);
-    AuthUser copy = user.copy();
-
+    Run.nonNull(
+        expires,
+        val -> {
+          if (val > 0) {
+            user.setExpiresAt(user.getRefreshAt() + val);
+          }
+        });
+    AuthUser copy = AUTH_UTIL.tokenService.generate(user.copy());
     AUTH_UTIL.authUserThreadLocal.set(copy);
     return copy;
   }
@@ -186,7 +185,6 @@ public class AuthUtil {
     }
     try {
       AuthUser authUser = AUTH_UTIL.tokenService.analyze(token);
-      authUser.setToken(token);
       AUTH_UTIL.authUserThreadLocal.set(authUser);
       return true;
     } catch (Exception e) {
@@ -212,21 +210,39 @@ public class AuthUtil {
    */
   @Nonnull
   public static AuthUser refresh(@Nonnull AuthUser user) {
+    AuthUser nowUser = getUser();
     AuthUser copy = user.copy();
-    // fill refreshTime
+    copy.setToken(nowUser.getToken());
+
+    // fill refresh time
     copy.setRefreshAt(CurrentTimeMillis.now() / 1000);
-    Run.nonNull(getAuthProperties().getExpiresSecond(), val -> {
-      if (val > 0) {
-        copy.setExpiresAt(copy.getRefreshAt() + getAuthProperties().getExpiresSecond());
-      }
-    });
+    // reset expire time
+    Run.nonNull(
+        getAuthProperties().getExpiresSecond(),
+        val -> {
+          if (val > 0) {
+            copy.setExpiresAt(copy.getRefreshAt() + val);
+          }
+        });
     AUTH_UTIL.authUserThreadLocal.set(copy);
-    return copy;
+    return AUTH_UTIL.tokenService.refresh(copy);
   }
 
   /**
-   * 登出
+   * 使用特定用户执行
+   *
+   * @code AuthUtil.execute(user, ()->{ // AuthUtil.getUser() 会是传入的 user });
+   * @param authUser 用户信息
+   * @param runnable 执行方法
    */
+  public static void execute(@Nonnull AuthUser authUser, @Nonnull Runnable runnable) {
+    AuthUser back = AUTH_UTIL.authUserThreadLocal.get();
+    AUTH_UTIL.authUserThreadLocal.set(authUser);
+    runnable.run();
+    AUTH_UTIL.authUserThreadLocal.set(back);
+  }
+
+  /** 登出 */
   public static void logout() {
     try {
       AUTH_UTIL.tokenService.clear(getUser());
