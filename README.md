@@ -57,7 +57,7 @@ public class Controller {
 
 ### 3.刷新用户信息
 
-场景一般为用户修改了昵称或头像
+场景一般为用户修改了昵称或头像，或者让token续期
 
 ```java
 public class Controller {
@@ -77,11 +77,9 @@ public class Controller {
 
 ```yml
 secret:
-  # jwt token有效期，单位秒，默认12小时
+  # token有效期，单位秒，默认12小时
   expires-second: 43200
-  # jwt颁发者
-  issuer: secret
-  # jwt HS256密钥
+  # aes密钥
   secret: yourSecret
 ```
 
@@ -174,40 +172,6 @@ public class Service {
 
 默认缓存使用`com.seepine.tool.cache.Cache`,因此可通过增强`Cache`将缓存保存至`Redis`等实现持久化
 
-也可实现 `PermissionService` 自定义权限获取，达到实时权限判断
-
-```java
-public class CustomPermissionImpl implements PermissionService {
-  @Nonnull
-  @Override
-  public Set<String> get(@Nonnull AuthUser user) {
-    // 例如权限可通过登录者id实时去数据库获取等 
-    try {
-      return Objects.require(Cache.get(getCacheKey() + user.getId()), HashSet::new);
-    } catch (Exception e) {
-      return new HashSet<>();
-    }
-  }
-
-  @Override
-  public void set(@Nonnull AuthUser user, @Nonnull Set<String> permissions) {
-    long delaySecond = 0;
-    if (user.getExpiresAt() != null) {
-      delaySecond = user.getExpiresAt() - user.getRefreshAt();
-    }
-    Cache.set(getCacheKey() + user.getId(), permissions, delaySecond * 1000);
-  }
-
-  private String getCacheKey() {
-    String prefix =
-      authProperties.getCachePrefix().endsWith(Strings.COLON)
-        ? authProperties.getCachePrefix()
-        : authProperties.getCachePrefix() + Strings.COLON;
-    return prefix + "permissions:";
-  }
-}
-```
-
 ## 四、接口角色限制
 
 > @Role
@@ -230,9 +194,9 @@ class Controller {
 }
 ```
 
-### 1.使用Roles
+### 1.使用@Role
 
-> @Roles必须加在接口上
+> @Role必须加在接口上
 
 ```java
 
@@ -240,7 +204,7 @@ class Controller {
 public class Controller {
 
   // 必须拥有 'admin' 角色才能访问
-  @Permission("admin")
+  @Role("admin")
   @GetMapping("/del/all")
   public void delAll() {
   }
@@ -248,7 +212,9 @@ public class Controller {
 }
 ```
 
-## 五、日志记录（暂只支持SpringBoot）
+## 五、日志记录
+
+> 仅提供注解，可自行通过aop去获取和保存到库
 
 > @Log
 
@@ -278,15 +244,88 @@ public class UserController {
 }
 ```
 
-### 2.日志存库
+## 六、跨线程问题
+
+> 在子线程中，请仅使用 `AuthUtil.getUser()` 去获取用户信息，勿使用 `AuthUtil.refresh()` 等修改方法
+
+### 1.跨线程
 
 ```java
 
-@Component
-public class MyAuthLogService implements AuthLogService {
-  @Override
-  public void save(LogEvent logEvent) {
-    // 此处可以将日志自行保存到mysql等
+@RestController
+public class UserController {
+
+  @GetMapping("/info")
+  public void info() {
+    // 可获取到用户信息
+    AuthUtil.getUser();
+
+    new Thread(
+      () -> {
+        // 可正常获取到用户信息
+        AuthUtil.getUser();
+      })
+      .start();
+  }
+}
+```
+
+### 2.跨线程池
+
+```java
+
+@RestController
+public class UserController {
+
+  @GetMapping("/info")
+  public void info() {
+    // 可获取到用户信息
+    AuthUtil.getUser();
+
+    Executor threadPool = Executors.newFixedThreadPool(1);
+    threadPool = TtlExecutors.getTtlExecutor(threadPool);
+    threadPool.execute(() -> {
+      // 可获取到用户信息
+      AuthUtil.getUser();
+    });
+  }
+
+  @GetMapping("/info")
+  public void info() {
+    // 可获取到用户信息
+    AuthUtil.getUser();
+
+    Executor threadPool = Executors.newFixedThreadPool(1);
+    // 若不方便改造线程池，可在执行时传通过Ttl构造
+    threadPool.execute(TtlRunnable.get(() -> {
+      // 可获取到用户信息
+      AuthUtil.getUser();
+    }));
+  }
+}
+```
+
+## 七、临时切换
+
+```java
+class Test {
+  public static void main(String[] args) {
+
+    AuthUtil.login(AuthUser.builder()
+      .id(123456L)
+      .build());
+
+    System.out.println(AuthUtil.getUser());
+
+    AuthUtil.execute(
+      AuthUser.builder().id(2).build(),
+      () -> {
+        System.out.println("inner :");
+        System.out.println(AuthUtil.getUser());
+      });
+
+    System.out.println("end :");
+    System.out.println(AuthUtil.getUser());
   }
 }
 ```
