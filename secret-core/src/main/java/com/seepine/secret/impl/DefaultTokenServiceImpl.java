@@ -8,7 +8,6 @@ import com.seepine.tool.cache.Cache;
 import com.seepine.tool.secure.symmetric.AES;
 import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Strings;
-
 import javax.annotation.Nonnull;
 
 /**
@@ -26,10 +25,12 @@ public class DefaultTokenServiceImpl implements TokenService {
 
   @Nonnull
   @Override
-  public String generate(@Nonnull AuthUser authUser) throws TokenSecretException {
+  public AuthUser generate(@Nonnull AuthUser authUser) throws TokenSecretException {
     String token = aes.encrypt(authUser.getId() + Strings.COLON + CurrentTimeMillis.now());
-    Cache.set(authProperties.getCachePrefix() + token, authUser, authProperties.getExpiresSecond() * 1000);
-    return token;
+    authUser.setToken(token);
+    long expireSecond = authUser.getExpiresAt() - authUser.getRefreshAt();
+    Cache.set(authProperties.getCachePrefix() + token, authUser, expireSecond * 1000);
+    return authUser;
   }
 
   @Nonnull
@@ -47,9 +48,16 @@ public class DefaultTokenServiceImpl implements TokenService {
     return authUser;
   }
 
+  @Nonnull
+  @Override
+  public AuthUser refresh(@Nonnull AuthUser authUser) {
+    long expireSecond = authUser.getExpiresAt() - authUser.getRefreshAt();
+    Cache.set(authProperties.getCachePrefix() + authUser.getToken(), authUser, expireSecond * 1000);
+    return authUser;
+  }
+
   @Override
   public void clear(@Nonnull AuthUser authUser) throws TokenSecretException {
     Cache.remove(authProperties.getCachePrefix() + authUser.getToken());
   }
-
 }
