@@ -14,13 +14,13 @@ public class PermissionUtil {
   /**
    * 校验角色或权限
    *
-   * @param must        满足所有
-   * @param or          满足任意一个
+   * @param must 满足所有
+   * @param or 满足任意一个
    * @param permissions 权限或角色集合
    * @throws ForbiddenSecretException 未授权
    */
   public static void verify(Set<String> permissions, String[] must, String[] or)
-    throws ForbiddenSecretException {
+      throws ForbiddenSecretException {
     if (must == null && or == null) {
       return;
     }
@@ -36,7 +36,7 @@ public class PermissionUtil {
 
   public static void verifyMust(Set<String> permissions, String[] must) {
     // 1.校验必须包含的权限
-    if (must == null || must.length == 0) {
+    if (must == null) {
       return;
     }
     for (String s : must) {
