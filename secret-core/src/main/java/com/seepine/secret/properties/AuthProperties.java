@@ -7,7 +7,7 @@ public class AuthProperties {
   /** token过期时间，单位秒，默认12小时 */
   private Long expiresSecond = 12 * 60 * 60L;
   /** 缓存前缀 */
-  private String cachePrefix = "com.seepine.secret:";
+  private String cachePrefix = "com.seepine.secret";
   /** 默认生成token所用aes密钥 */
   private String secret = "comseepinesecret";
   /** 拦截器排除的pathPatterns */

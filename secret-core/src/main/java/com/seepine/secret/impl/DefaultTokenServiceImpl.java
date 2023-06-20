@@ -29,7 +29,7 @@ public class DefaultTokenServiceImpl implements TokenService {
     String token = aes.encrypt(authUser.getId() + Strings.COLON + CurrentTimeMillis.now());
     authUser.setToken(token);
     long expireSecond = authUser.getExpiresAt() - authUser.getRefreshAt();
-    Cache.set(authProperties.getCachePrefix() + token, authUser, expireSecond * 1000);
+    Cache.set(getKey(token), authUser, expireSecond * 1000);
     return authUser;
   }
 
@@ -38,7 +38,7 @@ public class DefaultTokenServiceImpl implements TokenService {
   public AuthUser analyze(@Nonnull String token) throws TokenSecretException {
     AuthUser authUser;
     try {
-      authUser = Cache.get(authProperties.getCachePrefix() + token);
+      authUser = Cache.get(getKey(token));
     } catch (Exception e) {
       throw new TokenSecretException(e);
     }
@@ -52,12 +52,16 @@ public class DefaultTokenServiceImpl implements TokenService {
   @Override
   public AuthUser refresh(@Nonnull AuthUser authUser) {
     long expireSecond = authUser.getExpiresAt() - authUser.getRefreshAt();
-    Cache.set(authProperties.getCachePrefix() + authUser.getToken(), authUser, expireSecond * 1000);
+    Cache.set(getKey(authUser.getToken()), authUser, expireSecond * 1000);
     return authUser;
   }
 
   @Override
   public void clear(@Nonnull AuthUser authUser) throws TokenSecretException {
-    Cache.remove(authProperties.getCachePrefix() + authUser.getToken());
+    Cache.remove(getKey(authUser.getToken()));
+  }
+
+  private String getKey(String token) {
+    return authProperties.getCachePrefix() + Strings.COLON + token;
   }
 }
