@@ -5,9 +5,9 @@ import java.lang.annotation.*;
 /**
  * 禁令，作用于方法上
  *
+ * @author seepine
  * @code @Ban("comment")，表示若用户被ban了comment功能，则无法访问
  * @code AuthUtil.ban("comment")，主动ban某项功能
- * @author seepine
  * @since 1.0.0
  */
 @Documented
@@ -16,7 +16,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Ban {
   /**
-   * 若相应功能被ban，则不能访问，默认没有被ban
+   * 若相应功能只要有一个被ban，则不能访问
    *
    * @return ['comment','pay']
    */

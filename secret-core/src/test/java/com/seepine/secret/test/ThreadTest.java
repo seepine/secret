@@ -3,6 +3,7 @@ package com.seepine.secret.test;
 import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.seepine.secret.AuthUtil;
 import com.seepine.secret.entity.AuthUser;
+import com.seepine.secret.impl.DefaultBanServiceImpl;
 import com.seepine.secret.impl.DefaultTokenServiceImpl;
 import com.seepine.secret.properties.AuthProperties;
 import java.util.Arrays;
@@ -13,7 +14,10 @@ import java.util.concurrent.Executors;
 public class ThreadTest {
   public static void main(String[] args) throws InterruptedException {
     AuthProperties properties = new AuthProperties();
-    AuthUtil.init(new AuthProperties(), new DefaultTokenServiceImpl(properties));
+    AuthUtil.init(
+        new AuthProperties(),
+        new DefaultTokenServiceImpl(properties),
+        new DefaultBanServiceImpl(properties));
     AuthUser user =
         AuthUser.builder()
             .id(123456L)

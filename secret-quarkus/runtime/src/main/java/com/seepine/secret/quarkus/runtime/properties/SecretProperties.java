@@ -8,24 +8,13 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
  */
 @ConfigProperties(prefix = "secret")
 public class SecretProperties {
-	/**
-	 * token过期时间，单位秒，默认12小时
-	 */
-	@ConfigProperty(name = "expires-second", defaultValue = "43200")
-	public Long expiresSecond;
-	/**
-	 * 缓存前缀
-	 */
-	@ConfigProperty(name = "cache-prefix", defaultValue = "com.seepine.secret:")
-	public String cachePrefix;
-	/**
-	 * 默认jwt加密密钥
-	 */
-	@ConfigProperty(defaultValue = "com.seepine.secret")
-	public String secret;
-	/**
-	 * 默认jwt的issuer
-	 */
-	@ConfigProperty(defaultValue = "secret")
-	public String issuer;
+  /** token过期时间，单位秒，默认12小时 */
+  @ConfigProperty(name = "expires-second", defaultValue = "43200")
+  public Long expiresSecond;
+  /** 缓存前缀 */
+  @ConfigProperty(name = "cache-prefix", defaultValue = "com.seepine.secret")
+  public String cachePrefix;
+  /** 默认生成token所用密钥 */
+  @ConfigProperty(defaultValue = "com.seepine.secret")
+  public String secret;
 }

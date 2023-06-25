@@ -1,17 +1,17 @@
 package com.seepine.secret.spring.interceptor;
 
 import com.seepine.secret.AuthUtil;
+import com.seepine.secret.annotation.Ban;
 import com.seepine.secret.annotation.Permission;
 import com.seepine.secret.annotation.Role;
 import com.seepine.secret.util.AnnotationUtil;
 import com.seepine.secret.util.PermissionUtil;
+import java.lang.reflect.Method;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.lang.reflect.Method;
 
 /**
  * PermissionInterceptor
@@ -23,9 +23,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
   @Override
   public boolean preHandle(
-    @NonNull HttpServletRequest httpServletRequest,
-    @NonNull HttpServletResponse httpServletResponse,
-    @NonNull Object handler) {
+      @NonNull HttpServletRequest httpServletRequest,
+      @NonNull HttpServletResponse httpServletResponse,
+      @NonNull Object handler) {
     if (!(handler instanceof HandlerMethod)) {
       return true;
     }
@@ -40,6 +40,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
     Permission permission = AnnotationUtil.getAnnotation(method, Permission.class);
     if (permission != null) {
       PermissionUtil.verify(AuthUtil.getPermissions(), permission.value(), permission.or());
+    }
+    // 禁用拦截
+    Ban ban = AnnotationUtil.getAnnotation(method, Ban.class);
+    if (ban != null) {
+      AuthUtil.banVerifyOrElseThrow(ban.value());
     }
     return true;
   }

@@ -1,6 +1,7 @@
 package com.seepine.secret.quarkus.runtime.filter;
 
 import com.seepine.secret.AuthUtil;
+import com.seepine.secret.annotation.Ban;
 import com.seepine.secret.annotation.Permission;
 import com.seepine.secret.annotation.Role;
 import com.seepine.secret.util.AnnotationUtil;
@@ -11,7 +12,6 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.ext.Provider;
-
 import java.lang.reflect.Method;
 
 /**
@@ -22,8 +22,7 @@ import java.lang.reflect.Method;
 @Priority(Integer.MIN_VALUE + 100)
 @Provider
 public class PermissionFilter implements ContainerRequestFilter {
-  @Inject
-  ResourceInfo resourceInfo;
+  @Inject ResourceInfo resourceInfo;
 
   @Override
   public void filter(ContainerRequestContext containerRequestContext) {
@@ -37,6 +36,11 @@ public class PermissionFilter implements ContainerRequestFilter {
     Permission permission = AnnotationUtil.getAnnotation(method, Permission.class);
     if (permission != null) {
       PermissionUtil.verify(AuthUtil.getPermissions(), permission.value(), permission.or());
+    }
+    // 禁用拦截
+    Ban ban = AnnotationUtil.getAnnotation(method, Ban.class);
+    if (ban != null) {
+      AuthUtil.banVerifyOrElseThrow(ban.value());
     }
   }
 }

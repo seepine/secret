@@ -2,8 +2,10 @@ package com.seepine.secret;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 import com.seepine.secret.entity.AuthUser;
+import com.seepine.secret.exception.BanSecretException;
 import com.seepine.secret.exception.SecretException;
 import com.seepine.secret.exception.UnauthorizedSecretException;
+import com.seepine.secret.interfaces.BanService;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.secret.util.PermissionUtil;
@@ -12,6 +14,7 @@ import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Objects;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -24,11 +27,15 @@ public class AuthUtil {
   private AuthProperties authProperties;
   private TokenService tokenService;
 
+  private BanService banService;
+
   protected AuthUtil() {}
 
-  public static void init(AuthProperties authProperties, TokenService tokenService) {
+  public static void init(
+      AuthProperties authProperties, TokenService tokenService, BanService banService) {
     AUTH_UTIL.authProperties = authProperties;
     AUTH_UTIL.tokenService = tokenService;
+    AUTH_UTIL.banService = banService;
   }
 
   /**
@@ -249,5 +256,58 @@ public class AuthUtil {
       AUTH_UTIL.authUserThreadLocal.remove();
     } catch (SecretException ignored) {
     }
+  }
+
+  /**
+   * 永久禁用
+   *
+   * @param bans 功能
+   */
+  public static void ban(@Nonnull String... bans) throws BanSecretException {
+    AUTH_UTIL.banService.ban(getUser(), bans, 0);
+  }
+
+  /**
+   * 禁用
+   *
+   * @param bans 功能
+   * @param delayMillisecond 禁用时长，0则永久
+   */
+  public static void ban(@Nonnull String[] bans, @Nonnegative long delayMillisecond)
+      throws BanSecretException {
+    AUTH_UTIL.banService.ban(getUser(), bans, delayMillisecond);
+  }
+
+  /**
+   * 允许功能
+   *
+   * @param bans 功能
+   */
+  public static void banCancel(@Nonnull String... bans) throws BanSecretException {
+    AUTH_UTIL.banService.cancel(getUser(), bans);
+  }
+
+  /**
+   * 验证
+   *
+   * @param bans 功能
+   * @return true则验证通过，false则表示有某一项被禁
+   */
+  public static boolean banVerify(@Nonnull String... bans) {
+    try {
+      AUTH_UTIL.banService.verify(getUser(), bans);
+      return true;
+    } catch (BanSecretException ignore) {
+      return false;
+    }
+  }
+  /**
+   * 验证
+   *
+   * @param bans 功能
+   * @throws BanSecretException e
+   */
+  public static void banVerifyOrElseThrow(@Nonnull String... bans) throws BanSecretException {
+    AUTH_UTIL.banService.verify(getUser(), bans);
   }
 }
