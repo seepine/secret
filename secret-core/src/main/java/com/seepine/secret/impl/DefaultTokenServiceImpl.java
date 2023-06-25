@@ -5,6 +5,8 @@ import com.seepine.secret.exception.TokenSecretException;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.tool.cache.Cache;
+import com.seepine.tool.secure.digest.Digests;
+import com.seepine.tool.secure.digest.HmacAlgorithm;
 import com.seepine.tool.secure.symmetric.AES;
 import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Strings;
@@ -26,7 +28,9 @@ public class DefaultTokenServiceImpl implements TokenService {
   @Nonnull
   @Override
   public AuthUser generate(@Nonnull AuthUser authUser) throws TokenSecretException {
-    String token = aes.encrypt(authUser.getId() + Strings.COLON + CurrentTimeMillis.now());
+    String token =
+        Digests.hmac(HmacAlgorithm.HmacSHA256, authProperties.getSecret())
+            .digestHex(authUser.getId() + Strings.COLON + CurrentTimeMillis.now());
     authUser.setToken(token);
     long expireSecond = authUser.getExpiresAt() - authUser.getRefreshAt();
     Cache.set(getKey(token), authUser, expireSecond * 1000);
