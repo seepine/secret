@@ -9,20 +9,20 @@ import java.lang.annotation.*;
  */
 @Documented
 @Inherited
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Permission {
-	/**
-	 * 必须包含所有权限才能通过
-	 *
-	 * @return [permission1, permission2...]
-	 */
-	String[] value() default {};
+  /**
+   * 必须包含所有权限才能通过
+   *
+   * @return [permission1, permission2...]
+   */
+  String[] value() default {};
 
-	/**
-	 * 满足任意一个权限即可通过
-	 *
-	 * @return [permission1, permission2...]
-	 */
-	String[] or() default {};
+  /**
+   * 满足任意一个权限即可通过
+   *
+   * @return [permission1, permission2...]
+   */
+  String[] or() default {};
 }

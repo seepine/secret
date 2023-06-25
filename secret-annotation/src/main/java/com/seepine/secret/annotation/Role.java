@@ -10,20 +10,20 @@ import java.lang.annotation.*;
  */
 @Documented
 @Inherited
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Role {
-	/**
-	 * 必须包含所有角色才能通过
-	 *
-	 * @return [role1, role2...]
-	 */
-	String[] value() default {};
+  /**
+   * 必须包含所有角色才能通过
+   *
+   * @return [role1, role2...]
+   */
+  String[] value() default {};
 
-	/**
-	 * 满足任意一个角色即可通过
-	 *
-	 * @return [role1, role2...]
-	 */
-	String[] or() default {};
+  /**
+   * 满足任意一个角色即可通过
+   *
+   * @return [role1, role2...]
+   */
+  String[] or() default {};
 }
