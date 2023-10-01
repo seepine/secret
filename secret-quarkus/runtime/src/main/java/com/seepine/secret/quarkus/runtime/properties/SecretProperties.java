@@ -15,6 +15,6 @@ public class SecretProperties {
   @ConfigProperty(name = "cache-prefix", defaultValue = "com.seepine.secret")
   public String cachePrefix;
   /** 默认生成token所用密钥 */
-  @ConfigProperty(defaultValue = "com.seepine.secret")
+  @ConfigProperty(defaultValue = "comseepinesecret")
   public String secret;
 }
