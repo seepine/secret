@@ -7,7 +7,6 @@ import com.seepine.secret.properties.AuthProperties;
 import com.seepine.tool.cache.Cache;
 import com.seepine.tool.secure.digest.Digests;
 import com.seepine.tool.secure.digest.HmacAlgorithm;
-import com.seepine.tool.secure.symmetric.AES;
 import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Strings;
 import javax.annotation.Nonnull;
@@ -17,12 +16,10 @@ import javax.annotation.Nonnull;
  * @since 0.0.6
  */
 public class DefaultTokenServiceImpl implements TokenService {
-  private final AES aes;
   private final AuthProperties authProperties;
 
   public DefaultTokenServiceImpl(AuthProperties authProperties) {
     this.authProperties = authProperties;
-    this.aes = new AES(authProperties.getSecret());
   }
 
   @Nonnull
