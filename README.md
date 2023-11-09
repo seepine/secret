@@ -7,7 +7,8 @@
 ### 1.简介
 
 - @Expose/@NotExpose 暴露/不暴露接口
-- @Permission/@PermissionPrefix 接口鉴权，快速实现用户、角色、权限功能
+- @Permission/@Role 接口鉴权，快速实现用户、角色、权限功能
+- @Ban 功能禁用，快速实现禁用用户评论、发帖等功能
 - @Log 快速实现日志记录
 
 ### 1.引入依赖
@@ -216,7 +217,47 @@ public class Controller {
 }
 ```
 
-## 五、日志记录
+## 五、接口禁用
+
+> @Ban
+
+使用接口禁用注解，依赖于用户id，因此登录时用户id必传
+
+### 1.禁用
+
+```java
+class Service {
+
+  public void submit() {
+    // 以下操作对象皆为当前登录者
+    AuthUtil.ban("comment"); // 永久禁用comment功能
+    AuthUtil.ban("comment", 60 * 1000); // 禁用comment功能1分钟
+    AuthUtil.banCancel("comment"); // 解除禁用
+    AuthUtil.banVerify("comment"); // 判断是否被禁用，返回true/false
+  }
+
+}
+```
+
+### 2.使用@Ban
+
+> @Ban必须加在接口上
+
+```java
+
+@RestController
+public class Controller {
+
+  // 必须 'comment' 功能没被禁用才能访问
+  @Ban("comment")
+  @GetMapping("/comment")
+  public void comment() {
+  }
+
+}
+```
+
+## 六、日志记录
 
 > 仅提供注解，可自行通过aop去获取和保存到库
 
@@ -248,7 +289,7 @@ public class UserController {
 }
 ```
 
-## 六、跨线程问题
+## 七、跨线程问题
 
 > 在子线程中，请仅使用 `AuthUtil.getUser()` 去获取用户信息，勿使用 `AuthUtil.refresh()` 等修改方法
 
@@ -309,7 +350,7 @@ public class UserController {
 }
 ```
 
-## 七、临时切换
+## 八、临时切换
 
 ```java
 class Test {
