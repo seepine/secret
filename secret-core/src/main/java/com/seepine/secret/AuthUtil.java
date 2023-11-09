@@ -6,10 +6,10 @@ import com.seepine.secret.exception.BanSecretException;
 import com.seepine.secret.exception.SecretException;
 import com.seepine.secret.exception.UnauthorizedSecretException;
 import com.seepine.secret.interfaces.BanService;
+import com.seepine.secret.interfaces.PermissionService;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.secret.util.PermissionUtil;
-import com.seepine.tool.Run;
 import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Objects;
 import java.util.HashSet;
@@ -26,15 +26,19 @@ public class AuthUtil {
   private final ThreadLocal<AuthUser> authUserThreadLocal = new TransmittableThreadLocal<>();
   private AuthProperties authProperties;
   private TokenService tokenService;
-
+  private PermissionService permissionService;
   private BanService banService;
 
   protected AuthUtil() {}
 
   public static void init(
-      AuthProperties authProperties, TokenService tokenService, BanService banService) {
+      AuthProperties authProperties,
+      TokenService tokenService,
+      PermissionService permissionService,
+      BanService banService) {
     AUTH_UTIL.authProperties = authProperties;
     AUTH_UTIL.tokenService = tokenService;
+    AUTH_UTIL.permissionService = permissionService;
     AUTH_UTIL.banService = banService;
   }
 
@@ -45,6 +49,10 @@ public class AuthUtil {
    */
   public static AuthProperties getAuthProperties() {
     return AUTH_UTIL.authProperties;
+  }
+
+  public static PermissionService getPermissionService() {
+    return AUTH_UTIL.permissionService;
   }
 
   public static void clear() {
@@ -125,55 +133,32 @@ public class AuthUtil {
    */
   @Nonnull
   public static AuthUser login(@Nonnull AuthUser user) {
-    return login(user, user.getPermissions(), null);
+    return login(user, getAuthProperties().getExpires());
   }
-
   /**
    * 登录成功后设置用户信息，并返回token
    *
    * @param user user
-   * @param expiresSecond 过期时间(秒)
-   * @return token
-   */
-  @Nonnull
-  public static AuthUser login(@Nonnull AuthUser user, Long expiresSecond) {
-    return login(user, user.getPermissions(), expiresSecond);
-  }
-
-  /**
-   * 登录成功后设置用户信息，并返回token
-   *
-   * @param user user
-   * @param permissions 用户权限
+   * @param expiresSecond 过期时间,不允许小于0
    * @return user with token
    */
   @Nonnull
-  public static AuthUser login(@Nonnull AuthUser user, @Nullable Set<String> permissions) {
-    return login(user, permissions, null);
+  public static AuthUser login(@Nonnull AuthUser user, @Nonnegative Integer expiresSecond) {
+    return login(user, Long.valueOf(expiresSecond));
   }
-
   /**
    * 登录成功后设置用户信息，并返回token
    *
    * @param user user
-   * @param permissions 用户权限
-   * @param expiresSecond 过期时间
+   * @param expiresSecond 过期时间,不允许小于0
    * @return user with token
    */
   @Nonnull
-  public static AuthUser login(
-      @Nonnull AuthUser user, @Nullable Set<String> permissions, @Nullable Long expiresSecond) {
-    user.setPermissions(Objects.require(permissions, HashSet::new));
+  public static AuthUser login(@Nonnull AuthUser user, @Nonnegative Long expiresSecond) {
+    user.setPermissions(Objects.require(user.getPermissions(), HashSet::new));
     user.setSignAt(CurrentTimeMillis.now() / 1000);
     user.setRefreshAt(user.getSignAt());
-    Long expires = Objects.require(expiresSecond, getAuthProperties().getExpiresSecond());
-    Run.nonNull(
-        expires,
-        val -> {
-          if (val > 0) {
-            user.setExpiresAt(user.getRefreshAt() + val);
-          }
-        });
+    user.setExpiresAt(user.getRefreshAt() + expiresSecond);
     AuthUser copy = AUTH_UTIL.tokenService.generate(user.copy());
     AUTH_UTIL.authUserThreadLocal.set(copy);
     return copy;
@@ -194,6 +179,8 @@ public class AuthUtil {
       AuthUser authUser = AUTH_UTIL.tokenService.analyze(token);
       AUTH_UTIL.authUserThreadLocal.set(authUser);
       return true;
+    } catch (SecretException e) {
+      throw e;
     } catch (Exception e) {
       return false;
     }
@@ -220,17 +207,11 @@ public class AuthUtil {
     AuthUser nowUser = getUser();
     AuthUser copy = user.copy();
     copy.setToken(nowUser.getToken());
-
     // fill refresh time
     copy.setRefreshAt(CurrentTimeMillis.now() / 1000);
     // reset expire time
-    Run.nonNull(
-        getAuthProperties().getExpiresSecond(),
-        val -> {
-          if (val > 0) {
-            copy.setExpiresAt(copy.getRefreshAt() + val);
-          }
-        });
+    // 之前过期时间-之前刷新时间=之前多久过期，这次过期时间=当前刷新时间+之前多久过期
+    copy.setExpiresAt(copy.getRefreshAt() + (nowUser.getExpiresAt() - nowUser.getRefreshAt()));
     AUTH_UTIL.authUserThreadLocal.set(copy);
     return AUTH_UTIL.tokenService.refresh(copy);
   }

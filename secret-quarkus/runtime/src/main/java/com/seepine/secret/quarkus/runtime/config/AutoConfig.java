@@ -8,23 +8,21 @@ import jakarta.inject.Singleton;
 import jakarta.ws.rs.Produces;
 import org.eclipse.microprofile.config.inject.ConfigProperties;
 
-
 /**
  * @author seepine
  */
 public class AutoConfig {
-	@Inject
-	@ConfigProperties
-	SecretProperties secretProperties;
+  @Inject @ConfigProperties SecretProperties secretProperties;
 
-	@Produces
-	@DefaultBean
-	@Singleton
-	public AuthProperties authProperties() {
-		AuthProperties authProperties = new AuthProperties();
-		authProperties.setExpiresSecond(secretProperties.expiresSecond);
-		authProperties.setSecret(secretProperties.secret);
-		authProperties.setCachePrefix(secretProperties.cachePrefix);
-		return authProperties;
-	}
+  @Produces
+  @DefaultBean
+  @Singleton
+  public AuthProperties authProperties() {
+    AuthProperties authProperties = new AuthProperties();
+    authProperties.setExpires(secretProperties.expires);
+    authProperties.setSecret(secretProperties.secret);
+    authProperties.setCachePrefix(secretProperties.cachePrefix);
+    authProperties.setIssuer(secretProperties.issuer);
+    return authProperties;
+  }
 }

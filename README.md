@@ -66,6 +66,8 @@ public class Controller {
     // 修改用户信息逻辑
     AuthUser user = userService.update();
     // 刷新用户信息
+    // 默认token为jwt，刷新后token会改变，前端也需要跟着变动token值
+    // 也可以注入内置的token实现类NormalTokenServiceImpl，非jwt实现，刷新token不会改变，无需前端配合
     return AuthUtil.refresh(user);
   }
 }
@@ -78,7 +80,7 @@ public class Controller {
 ```yml
 secret:
   # token有效期，单位秒，默认12小时
-  expires-second: 43200
+  expires: 43200
   # aes密钥
   secret: yourSecret
 ```
@@ -97,6 +99,8 @@ public class Config {
 
   @Bean
   public TokenService tokenService() {
+    // 默认DefaultTokenServiceImpl为jwt实现，也可该为非jwt的NormalTokenServiceImpl
+    // 当然也可以自定义token生成和解析规则类如CustomAuthService
     return new CustomAuthService(authProperties);
   }
 }

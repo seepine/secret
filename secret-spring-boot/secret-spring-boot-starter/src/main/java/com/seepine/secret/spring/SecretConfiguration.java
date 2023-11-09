@@ -1,8 +1,10 @@
 package com.seepine.secret.spring;
 
 import com.seepine.secret.impl.DefaultBanServiceImpl;
+import com.seepine.secret.impl.DefaultPermissionServiceImpl;
 import com.seepine.secret.impl.DefaultTokenServiceImpl;
 import com.seepine.secret.interfaces.BanService;
+import com.seepine.secret.interfaces.PermissionService;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.spring.properties.AuthPropertiesImpl;
 import jakarta.annotation.Resource;
@@ -28,6 +30,16 @@ public class SecretConfiguration {
   @ConditionalOnMissingBean(TokenService.class)
   public TokenService authService() {
     return new DefaultTokenServiceImpl(authProperties);
+  }
+  /**
+   * 填充permissionService
+   *
+   * @return DefaultPermissionServiceImpl
+   */
+  @Bean
+  @ConditionalOnMissingBean(PermissionService.class)
+  public PermissionService permissionService() {
+    return new DefaultPermissionServiceImpl(authProperties);
   }
   /**
    * 填充banService

@@ -2,6 +2,7 @@ package com.seepine.secret.spring.init;
 
 import com.seepine.secret.AuthUtil;
 import com.seepine.secret.interfaces.BanService;
+import com.seepine.secret.interfaces.PermissionService;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.spring.properties.AuthPropertiesImpl;
 import jakarta.annotation.Resource;
@@ -19,11 +20,12 @@ public class AppInit implements ApplicationRunner {
   @Resource TokenService authService;
 
   @Resource BanService banService;
+  @Resource PermissionService permissionService;
 
   @Resource AuthPropertiesImpl authProperties;
 
   @Override
   public void run(ApplicationArguments args) {
-    AuthUtil.init(authProperties, authService, banService);
+    AuthUtil.init(authProperties, authService, permissionService, banService);
   }
 }

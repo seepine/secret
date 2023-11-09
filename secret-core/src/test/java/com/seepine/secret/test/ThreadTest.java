@@ -4,6 +4,7 @@ import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.seepine.secret.AuthUtil;
 import com.seepine.secret.entity.AuthUser;
 import com.seepine.secret.impl.DefaultBanServiceImpl;
+import com.seepine.secret.impl.DefaultPermissionServiceImpl;
 import com.seepine.secret.impl.DefaultTokenServiceImpl;
 import com.seepine.secret.properties.AuthProperties;
 import java.util.Arrays;
@@ -17,6 +18,7 @@ public class ThreadTest {
     AuthUtil.init(
         new AuthProperties(),
         new DefaultTokenServiceImpl(properties),
+        new DefaultPermissionServiceImpl(properties),
         new DefaultBanServiceImpl(properties));
     AuthUser user =
         AuthUser.builder()

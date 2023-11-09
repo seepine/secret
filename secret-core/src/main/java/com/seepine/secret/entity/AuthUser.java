@@ -26,7 +26,7 @@ public class AuthUser implements Serializable {
   private Long signAt;
   /** 续期时间,自动生成,second */
   private Long refreshAt;
-  /** 过期时间,null表示无过期，second */
+  /** 过期时间,null表示无过期,second */
   private Long expiresAt;
   /** 租户名称 */
   private String tenantName;
@@ -310,10 +310,13 @@ public class AuthUser implements Serializable {
         + '\''
         + ", signAt="
         + signAt
+        + '\''
         + ", refreshAt="
         + refreshAt
+        + '\''
         + ", expiresAt="
         + expiresAt
+        + '\''
         + ", tenantName='"
         + tenantName
         + '\''
@@ -325,10 +328,13 @@ public class AuthUser implements Serializable {
         + '\''
         + ", claims="
         + claims
+        + '\''
         + ", roles="
         + roles
+        + '\''
         + ", permissions="
         + permissions
+        + '\''
         + ", token='"
         + token
         + '\''

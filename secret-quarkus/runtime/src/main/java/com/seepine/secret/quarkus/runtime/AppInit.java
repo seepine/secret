@@ -2,6 +2,7 @@ package com.seepine.secret.quarkus.runtime;
 
 import com.seepine.secret.AuthUtil;
 import com.seepine.secret.interfaces.BanService;
+import com.seepine.secret.interfaces.PermissionService;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import io.quarkus.runtime.StartupEvent;
@@ -23,7 +24,8 @@ public class AppInit {
       @Observes StartupEvent event,
       AuthProperties authProperties,
       TokenService tokenService,
+      PermissionService permissionService,
       BanService banService) {
-    AuthUtil.init(authProperties, tokenService, banService);
+    AuthUtil.init(authProperties, tokenService, permissionService, banService);
   }
 }
