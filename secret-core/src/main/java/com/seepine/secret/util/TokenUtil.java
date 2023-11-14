@@ -20,10 +20,16 @@ public class TokenUtil {
     if (Objects.nonEmpty(token) && token.startsWith(HEADER_PREFIX)) {
       token = token.substring(7);
     }
-    boolean isFindAndFill = AuthUtil.findAndFill(token);
+    Expose expose = AnnotationUtil.getAnnotation(method, Expose.class);
     // not @NotExpose and has @Expose, pass
+    boolean hasExpose = expose != null;
+    boolean isFindAndFill = false;
+    // 没有 @Expose 或 有但不跳过，则需要寻找token
+    if (!hasExpose || !expose.skip()) {
+      isFindAndFill = AuthUtil.findAndFill(token);
+    }
+    // 没有 @NotExpose 并 有@Expose 可以不拦截
     boolean hasNotExpose = AnnotationUtil.hasAnnotation(method, NotExpose.class);
-    boolean hasExpose = AnnotationUtil.hasAnnotation(method, Expose.class);
     if (!hasNotExpose && hasExpose) {
       return true;
     }
