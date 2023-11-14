@@ -14,6 +14,7 @@ import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Objects;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -228,6 +229,23 @@ public class AuthUtil {
     AUTH_UTIL.authUserThreadLocal.set(authUser);
     runnable.run();
     AUTH_UTIL.authUserThreadLocal.set(back);
+  }
+
+  /**
+   * 使用特定用户执行
+   *
+   * @code AuthUtil.execute(user, ()->{ // AuthUtil.getUser() 会是传入的 user });
+   * @param authUser 用户信息
+   * @param supplier 执行方法
+   */
+  public static <T> T execute(@Nonnull AuthUser authUser, @Nonnull Supplier<T> supplier) {
+    AuthUser back = AUTH_UTIL.authUserThreadLocal.get();
+    try {
+      AUTH_UTIL.authUserThreadLocal.set(authUser);
+      return supplier.get();
+    } finally {
+      AUTH_UTIL.authUserThreadLocal.set(back);
+    }
   }
 
   /** 登出 */
