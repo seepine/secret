@@ -177,6 +177,24 @@ public class Service {
 
 默认缓存使用`com.seepine.tool.cache.Cache`,因此可通过增强`Cache`将缓存保存至`Redis`等实现持久化
 
+### 4.自定义权限获取逻辑
+
+> 此方法无需在登陆时传入权限 `AuthUtil.login(user)`
+
+```java
+@Component
+class CustomPermissionServiceImpl implements PermissionService {
+
+  @Nonnull
+  @Override
+  public Set<String> query(@NotNull AuthUser authUser) {
+    // 此处通过方法获取权限集合即可
+    // 若是微服务或多模块涉及远程调用，调用目标接口需跳过鉴权@Expose(skip=true)
+    return userService.getPermissions(authUser);
+  }
+}
+```
+
 ## 四、接口角色限制
 
 > @Role
