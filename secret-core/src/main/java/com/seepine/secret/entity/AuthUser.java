@@ -8,40 +8,48 @@ import java.util.*;
  */
 public class AuthUser implements Serializable {
   private static final long serialVersionUID = 0L;
+
   /** 主键id */
   private String id;
+
   /** 昵称 */
   private String nickName;
+
   /** 姓名 */
   private String fullName;
+
   /** 用户名 */
   private String username;
+
   /** 手机号 */
   private String phone;
+
   /** 电子邮箱 */
   private String email;
+
   /** 头像url */
   private String avatarUrl;
-  /** 登录时间,自动生成,second */
-  private Long signAt;
-  /** 续期时间,自动生成,second */
-  private Long refreshAt;
-  /** 过期时间,null表示无过期,second */
-  private Long expiresAt;
+
   /** 租户名称 */
   private String tenantName;
+
   /** 租户id */
   private String tenantId;
+
   /** 平台 */
   private String platform;
+
   /** 额外参数 */
   private Map<String, Object> claims = new HashMap<>();
+
   /** 用户角色 */
   private Set<String> roles;
+
   /** 用户权限 */
   private Set<String> permissions;
-  /** 令牌 */
-  private String token;
+
+  /** token信息 */
+  private TokenInfo tokenInfo;
 
   public String getId() {
     return id;
@@ -106,33 +114,6 @@ public class AuthUser implements Serializable {
     return this;
   }
 
-  public Long getSignAt() {
-    return signAt;
-  }
-
-  public AuthUser setSignAt(Long signAt) {
-    this.signAt = signAt;
-    return this;
-  }
-
-  public Long getRefreshAt() {
-    return refreshAt;
-  }
-
-  public AuthUser setRefreshAt(Long refreshAt) {
-    this.refreshAt = refreshAt;
-    return this;
-  }
-
-  public Long getExpiresAt() {
-    return expiresAt;
-  }
-
-  public AuthUser setExpiresAt(Long expiresAt) {
-    this.expiresAt = expiresAt;
-    return this;
-  }
-
   public String getTenantName() {
     return tenantName;
   }
@@ -187,12 +168,12 @@ public class AuthUser implements Serializable {
     return this;
   }
 
-  public String getToken() {
-    return token;
+  public TokenInfo getTokenInfo() {
+    return tokenInfo;
   }
 
-  public AuthUser setToken(String token) {
-    this.token = token;
+  public AuthUser setTokenInfo(TokenInfo tokenInfo) {
+    this.tokenInfo = tokenInfo;
     return this;
   }
 
@@ -308,15 +289,6 @@ public class AuthUser implements Serializable {
         + ", avatarUrl='"
         + avatarUrl
         + '\''
-        + ", signAt="
-        + signAt
-        + '\''
-        + ", refreshAt="
-        + refreshAt
-        + '\''
-        + ", expiresAt="
-        + expiresAt
-        + '\''
         + ", tenantName='"
         + tenantName
         + '\''
@@ -328,16 +300,12 @@ public class AuthUser implements Serializable {
         + '\''
         + ", claims="
         + claims
-        + '\''
         + ", roles="
         + roles
-        + '\''
         + ", permissions="
         + permissions
-        + '\''
-        + ", token='"
-        + token
-        + '\''
+        + ", tokenInfo="
+        + tokenInfo
         + '}';
   }
 
@@ -362,16 +330,13 @@ public class AuthUser implements Serializable {
         .phone(phone)
         .email(email)
         .avatarUrl(avatarUrl)
-        .signAt(signAt)
-        .refreshAt(refreshAt)
-        .expiresAt(expiresAt)
         .tenantId(tenantId)
         .tenantName(tenantName)
         .platform(platform)
         .roles(cloneRoles)
         .permissions(clonePermissions)
         .claims(cloneClaims)
-        .token(token)
+        .tokenInfo(tokenInfo == null ? null : tokenInfo.copy())
         .build();
   }
 
@@ -431,21 +396,6 @@ public class AuthUser implements Serializable {
       return this;
     }
 
-    public Builder signAt(Long signAt) {
-      authUser.setSignAt(signAt);
-      return this;
-    }
-
-    public Builder refreshAt(Long signAt) {
-      authUser.setRefreshAt(signAt);
-      return this;
-    }
-
-    public Builder expiresAt(Long expiresAt) {
-      authUser.setExpiresAt(expiresAt);
-      return this;
-    }
-
     public Builder roles(Set<String> roles) {
       authUser.roles = roles;
       return this;
@@ -476,8 +426,8 @@ public class AuthUser implements Serializable {
       return this;
     }
 
-    public Builder token(String token) {
-      authUser.setToken(token);
+    public Builder tokenInfo(TokenInfo tokenInfo) {
+      authUser.setTokenInfo(tokenInfo);
       return this;
     }
 

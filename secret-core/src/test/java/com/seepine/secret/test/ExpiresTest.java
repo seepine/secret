@@ -31,11 +31,11 @@ public class ExpiresTest {
     // AuthUtil.logout();
     Thread.sleep(1000);
     System.out.println("1s之后");
-    AuthUtil.findAndFill(newUser.getToken());
+    AuthUtil.findAndFill(newUser.getTokenInfo().getAccessToken());
     System.out.println(AuthUtil.getUser());
     Thread.sleep(1000);
     System.out.println("2s之后");
-    AuthUtil.findAndFill(newUser.getToken());
+    AuthUtil.findAndFill(newUser.getTokenInfo().getAccessToken());
     System.out.println(AuthUtil.getUser());
   }
 }

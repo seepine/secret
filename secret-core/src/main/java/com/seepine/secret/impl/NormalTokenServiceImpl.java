@@ -10,6 +10,7 @@ import com.seepine.tool.secure.digest.Digests;
 import com.seepine.tool.secure.digest.HmacAlgorithm;
 import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Strings;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
 /**
@@ -27,14 +28,13 @@ public class NormalTokenServiceImpl implements TokenService {
 
   @Nonnull
   @Override
-  public AuthUser generate(@Nonnull AuthUser authUser) throws SecretException {
+  public String generate(@Nonnull final AuthUser authUser, @Nonnegative final Long expires)
+      throws SecretException {
     String token =
         Digests.hmac(HmacAlgorithm.HmacSHA256, authProperties.getSecret())
             .digestHex(authUser.getId() + Strings.COLON + CurrentTimeMillis.now());
-    authUser.setToken(token);
-    long expireSecond = authUser.getExpiresAt() - authUser.getRefreshAt();
-    Cache.set(getKey(token), authUser, expireSecond * 1000);
-    return authUser;
+    Cache.set(getKey(token), authUser, expires * 1000);
+    return token;
   }
 
   @Nonnull
@@ -52,17 +52,9 @@ public class NormalTokenServiceImpl implements TokenService {
     return authUser;
   }
 
-  @Nonnull
-  @Override
-  public AuthUser refresh(@Nonnull AuthUser authUser) throws SecretException {
-    long expireSecond = authUser.getExpiresAt() - authUser.getRefreshAt();
-    Cache.set(getKey(authUser.getToken()), authUser, expireSecond * 1000);
-    return authUser;
-  }
-
   @Override
   public void clear(@Nonnull AuthUser authUser) throws SecretException {
-    Cache.remove(getKey(authUser.getToken()));
+    Cache.remove(getKey(authUser.getTokenInfo().getAccessToken()));
   }
 
   private String getKey(String token) {

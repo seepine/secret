@@ -2,6 +2,7 @@ package com.seepine.secret;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 import com.seepine.secret.entity.AuthUser;
+import com.seepine.secret.entity.TokenInfo;
 import com.seepine.secret.exception.BanSecretException;
 import com.seepine.secret.exception.SecretException;
 import com.seepine.secret.exception.UnauthorizedSecretException;
@@ -10,7 +11,7 @@ import com.seepine.secret.interfaces.PermissionService;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.secret.util.PermissionUtil;
-import com.seepine.tool.time.CurrentTimeMillis;
+import com.seepine.tool.time.CurrentTime;
 import com.seepine.tool.util.Objects;
 import java.util.HashSet;
 import java.util.Set;
@@ -134,8 +135,9 @@ public class AuthUtil {
    */
   @Nonnull
   public static AuthUser login(@Nonnull AuthUser user) {
-    return login(user, getAuthProperties().getExpires());
+    return login(user, getAuthProperties().getExpires(), getAuthProperties().getRefreshExpires());
   }
+
   /**
    * 登录成功后设置用户信息，并返回token
    *
@@ -145,22 +147,54 @@ public class AuthUtil {
    */
   @Nonnull
   public static AuthUser login(@Nonnull AuthUser user, @Nonnegative Integer expiresSecond) {
-    return login(user, Long.valueOf(expiresSecond));
+    return login(user, Long.valueOf(expiresSecond), getAuthProperties().getRefreshExpires());
   }
+
   /**
    * 登录成功后设置用户信息，并返回token
    *
    * @param user user
    * @param expiresSecond 过期时间,不允许小于0
+   * @param refreshExpiresSecond 刷新token过期时间,不允许小于0
    * @return user with token
    */
   @Nonnull
-  public static AuthUser login(@Nonnull AuthUser user, @Nonnegative Long expiresSecond) {
-    user.setPermissions(Objects.require(user.getPermissions(), HashSet::new));
-    user.setSignAt(CurrentTimeMillis.now() / 1000);
-    user.setRefreshAt(user.getSignAt());
-    user.setExpiresAt(user.getRefreshAt() + expiresSecond);
-    AuthUser copy = AUTH_UTIL.tokenService.generate(user.copy());
+  public static AuthUser login(
+      @Nonnull AuthUser user,
+      @Nonnegative Integer expiresSecond,
+      @Nonnegative Integer refreshExpiresSecond) {
+    return login(user, Long.valueOf(expiresSecond), Long.valueOf(refreshExpiresSecond));
+  }
+
+  /**
+   * 登录成功后设置用户信息，并返回token
+   *
+   * @param user user
+   * @param expiresSecond 过期时间,不允许小于0
+   * @param refreshExpiresSecond 刷新token过期时间,不允许小于0
+   * @return user with token
+   */
+  @Nonnull
+  public static AuthUser login(
+      @Nonnull AuthUser user,
+      @Nonnegative Long expiresSecond,
+      @Nonnegative Long refreshExpiresSecond) {
+    AuthUser copy = user.copy();
+    copy.setPermissions(Objects.require(copy.getPermissions(), HashSet::new));
+    if (copy.getTokenInfo() == null) {
+      copy.setTokenInfo(new TokenInfo().setSignAt(CurrentTime.second()));
+    }
+    copy.setTokenInfo(
+        copy.getTokenInfo()
+            .setExpires(expiresSecond)
+            .setRefreshExpires(refreshExpiresSecond)
+            .setRefreshAt(CurrentTime.second()));
+    copy.getTokenInfo().setAccessToken(null);
+    copy.getTokenInfo().setRefreshToken(null);
+    String accessToken = AUTH_UTIL.tokenService.generate(copy.copy(), expiresSecond);
+    String refreshToken = AUTH_UTIL.tokenService.generate(copy.copy(), refreshExpiresSecond);
+    copy.setTokenInfo(
+        copy.getTokenInfo().setAccessToken(accessToken).setRefreshToken(refreshToken));
     AUTH_UTIL.authUserThreadLocal.set(copy);
     return copy;
   }
@@ -205,16 +239,7 @@ public class AuthUtil {
    */
   @Nonnull
   public static AuthUser refresh(@Nonnull AuthUser user) {
-    AuthUser nowUser = getUser();
-    AuthUser copy = user.copy();
-    copy.setToken(nowUser.getToken());
-    // fill refresh time
-    copy.setRefreshAt(CurrentTimeMillis.now() / 1000);
-    // reset expire time
-    // 之前过期时间-之前刷新时间=之前多久过期，这次过期时间=当前刷新时间+之前多久过期
-    copy.setExpiresAt(copy.getRefreshAt() + (nowUser.getExpiresAt() - nowUser.getRefreshAt()));
-    AUTH_UTIL.authUserThreadLocal.set(copy);
-    return AUTH_UTIL.tokenService.refresh(copy);
+    return login(user, user.getTokenInfo().getExpires(), user.getTokenInfo().getRefreshExpires());
   }
 
   /**
@@ -300,6 +325,7 @@ public class AuthUtil {
       return false;
     }
   }
+
   /**
    * 验证
    *

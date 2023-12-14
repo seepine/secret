@@ -20,6 +20,7 @@ public class AutoConfig {
   public AuthProperties authProperties() {
     AuthProperties authProperties = new AuthProperties();
     authProperties.setExpires(secretProperties.expires);
+    authProperties.setRefreshExpires(secretProperties.refreshExpires);
     authProperties.setSecret(secretProperties.secret);
     authProperties.setCachePrefix(secretProperties.cachePrefix);
     authProperties.setIssuer(secretProperties.issuer);

@@ -10,6 +10,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.seepine.secret.AuthUtil;
 import com.seepine.secret.entity.AuthUser;
+import com.seepine.secret.entity.TokenInfo;
 import com.seepine.secret.exception.ExpiresSecretException;
 import com.seepine.secret.exception.SecretException;
 import com.seepine.secret.exception.TokenSecretException;
@@ -17,14 +18,15 @@ import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.tool.Run;
 import com.seepine.tool.cache.Cache;
+import com.seepine.tool.time.CurrentTime;
 import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Objects;
 import com.seepine.tool.util.Strings;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
 /**
@@ -44,12 +46,14 @@ public class DefaultTokenServiceImpl implements TokenService {
 
   @Nonnull
   @Override
-  public AuthUser generate(@Nonnull AuthUser authUser) throws SecretException {
+  public String generate(@Nonnull final AuthUser authUser, @Nonnegative final Long expires)
+      throws SecretException {
     try {
-      Instant now = Instant.ofEpochSecond(authUser.getSignAt());
+      Instant now = Instant.ofEpochSecond(CurrentTime.second());
       JWTCreator.Builder jwtBuilder =
           JWT.create().withIssuer(authProperties.getIssuer()).withIssuedAt(now);
-      jwtBuilder.withExpiresAt(Instant.ofEpochSecond(authUser.getExpiresAt()));
+      jwtBuilder.withExpiresAt(Instant.ofEpochSecond(CurrentTime.second() + expires));
+
       Run.nonNull(authUser.getId(), val -> jwtBuilder.withClaim("id", val));
       Run.nonNull(authUser.getNickName(), val -> jwtBuilder.withClaim("nickName", val));
       Run.nonNull(authUser.getFullName(), val -> jwtBuilder.withClaim("fullName", val));
@@ -57,11 +61,10 @@ public class DefaultTokenServiceImpl implements TokenService {
       Run.nonNull(authUser.getPhone(), val -> jwtBuilder.withClaim("phone", val));
       Run.nonNull(authUser.getEmail(), val -> jwtBuilder.withClaim("email", val));
       Run.nonNull(authUser.getAvatarUrl(), val -> jwtBuilder.withClaim("avatarUrl", val));
-      Run.nonNull(authUser.getSignAt(), val -> jwtBuilder.withClaim("signAt", val));
-      Run.nonNull(authUser.getRefreshAt(), val -> jwtBuilder.withClaim("refreshAt", val));
       Run.nonNull(authUser.getTenantName(), val -> jwtBuilder.withClaim("tenantName", val));
       Run.nonNull(authUser.getTenantId(), val -> jwtBuilder.withClaim("tenantId", val));
       Run.nonNull(authUser.getPlatform(), val -> jwtBuilder.withClaim("platform", val));
+      Run.nonNull(authUser.getTokenInfo(), val -> jwtBuilder.withClaim("tokenInfo", val.toMap()));
       Run.nonEmpty(
           authUser.getRoles(),
           val -> jwtBuilder.withArrayClaim("roles", val.toArray(new String[] {})));
@@ -72,16 +75,7 @@ public class DefaultTokenServiceImpl implements TokenService {
             "Expected authUser claims containing Boolean, Integer, Long, Double, String and Date. Your claims: "
                 + authUser.getClaims().toString());
       }
-      authUser.setToken(jwtBuilder.sign(algorithm));
-      // 保存 permissions 在缓存里
-      Run.nonEmpty(
-          authUser.getPermissions(),
-          permissions ->
-              Cache.set(
-                  getKey(authUser.getId()) + ":permissions",
-                  permissions,
-                  (authUser.getExpiresAt() - authUser.getRefreshAt()) * 1000));
-      return authUser;
+      return jwtBuilder.sign(algorithm);
     } catch (JWTCreationException exception) {
       throw new TokenSecretException(exception);
     }
@@ -101,6 +95,8 @@ public class DefaultTokenServiceImpl implements TokenService {
       if (!decodedJwt.getClaim("roles").isMissing() && !decodedJwt.getClaim("roles").isNull()) {
         roles = new HashSet<>(decodedJwt.getClaim("roles").asList(String.class));
       }
+      TokenInfo tokenInfo = TokenInfo.parse(decodedJwt.getClaim("tokenInfo").asMap());
+      tokenInfo.setAccessToken(token);
       AuthUser authUser =
           AuthUser.builder()
               .id(decodedJwt.getClaim("id").asString())
@@ -110,18 +106,12 @@ public class DefaultTokenServiceImpl implements TokenService {
               .phone(decodedJwt.getClaim("phone").asString())
               .email(decodedJwt.getClaim("email").asString())
               .avatarUrl(decodedJwt.getClaim("avatarUrl").asString())
-              .signAt(decodedJwt.getIssuedAt().getTime() / 1000)
-              .refreshAt(decodedJwt.getClaim("refreshAt").asLong())
-              .expiresAt(
-                  Optional.ofNullable(decodedJwt.getExpiresAt())
-                      .map(item -> item.getTime() / 1000)
-                      .orElse(null))
               .tenantId(decodedJwt.getClaim("tenantId").asString())
               .tenantName(decodedJwt.getClaim("tenantName").asString())
               .platform(decodedJwt.getClaim("platform").asString())
               .roles(roles)
+              .tokenInfo(tokenInfo)
               .claims(Objects.require(decodedJwt.getClaim("claims").asMap(), new HashMap<>(16)))
-              .token(token)
               .build();
       authUser.setPermissions(AuthUtil.getPermissionService().query(authUser));
       return authUser;
@@ -136,24 +126,12 @@ public class DefaultTokenServiceImpl implements TokenService {
     }
   }
 
-  /**
-   * jwt的刷新token信息，表示重新生成一个新token
-   *
-   * @param authUser 用户信息
-   * @return authUser
-   */
-  @Nonnull
-  @Override
-  public AuthUser refresh(@Nonnull AuthUser authUser) throws SecretException {
-    return generate(authUser);
-  }
-
   @Override
   public void clear(@Nonnull AuthUser authUser) throws SecretException {
-    long expire = authUser.getExpiresAt() - authUser.getRefreshAt();
+    long expire = authUser.getTokenInfo().getExpires();
     if (expire > 0) {
       Cache.set(
-          getKey(authUser.getToken()) + ":logout",
+          getKey(authUser.getTokenInfo().getAccessToken()) + ":logout",
           String.valueOf(CurrentTimeMillis.now() / 1000),
           expire * 1000);
     }

@@ -2,6 +2,7 @@ package com.seepine.secret.test;
 
 import com.seepine.secret.AuthUtil;
 import com.seepine.secret.entity.AuthUser;
+import com.seepine.secret.entity.TokenInfo;
 import com.seepine.secret.impl.DefaultBanServiceImpl;
 import com.seepine.secret.impl.DefaultPermissionServiceImpl;
 import com.seepine.secret.impl.DefaultTokenServiceImpl;
@@ -41,8 +42,8 @@ public class LoginTest {
     System.out.println(AuthUtil.getUser());
     System.out.println(AuthUtil.getUser().getClaim("status"));
     System.out.println(AuthUtil.getUser().getClaimAsBool("isDelete"));
-    Long signAt = AuthUtil.getUser().getSignAt();
-    System.out.println("signAt:" + signAt);
+    TokenInfo tokenInfo = AuthUtil.getUser().getTokenInfo();
+    System.out.println("tokenInfo:" + tokenInfo);
     Long id = AuthUtil.getUser().getIdAsLong();
     System.out.println("id:" + id);
   }
