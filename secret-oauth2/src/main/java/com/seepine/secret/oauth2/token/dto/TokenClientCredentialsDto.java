@@ -14,7 +14,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Accessors(chain = true)
 @ToString(callSuper = true)
 @SuperBuilder(toBuilder = true)
