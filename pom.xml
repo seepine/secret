@@ -7,7 +7,7 @@
   <version>1.0.0-beta.50</version>
   <modules>
     <module>secret-core</module>
-    <!--    <module>secret-oauth2</module>-->
+    <module>secret-oauth2</module>
     <module>secret-annotation</module>
     <module>secret-spring-boot</module>
     <module>secret-quarkus</module>
