@@ -53,8 +53,8 @@ public class NormalTokenServiceImpl implements TokenService {
   }
 
   @Override
-  public void clear(@Nonnull AuthUser authUser) throws SecretException {
-    Cache.remove(getKey(authUser.getTokenInfo().getAccessToken()));
+  public void clear(@Nonnull String token) throws SecretException {
+    Cache.remove(getKey(token));
   }
 
   private String getKey(String token) {

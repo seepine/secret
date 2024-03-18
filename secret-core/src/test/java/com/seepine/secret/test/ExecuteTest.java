@@ -15,17 +15,20 @@ public class ExecuteTest {
         new DefaultTokenServiceImpl(properties),
         new DefaultPermissionServiceImpl(properties),
         new DefaultBanServiceImpl(properties));
-    AuthUser user = AuthUser.builder().id(123456L).build();
+    AuthUser user = AuthUser.builder().id("123456").build();
     AuthUtil.login(user);
 
     System.out.println(AuthUtil.getUser());
 
-    AuthUtil.execute(
-        AuthUser.builder().id(2).build(),
-        () -> {
-          System.out.println("inner :");
-          System.out.println(AuthUtil.getUser());
-        });
+    String runRes =
+        AuthUtil.execute(
+            AuthUser.builder().id("2").build(),
+            () -> {
+              System.out.println("inner :");
+              System.out.println(AuthUtil.getUser());
+              return AuthUtil.getUser().getId();
+            });
+    System.out.println("run res:" + runRes);
 
     System.out.println("end :");
     System.out.println(AuthUtil.getUser());

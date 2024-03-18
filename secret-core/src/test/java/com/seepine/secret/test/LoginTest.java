@@ -25,25 +25,23 @@ public class LoginTest {
         new DefaultBanServiceImpl(properties));
     AuthUser user =
         AuthUser.builder()
-            .id(123456L)
-            .nickName("secret")
+            .id("123456")
+            .name("secret")
             .roles(new HashSet<>(Arrays.asList("admin", "manager")))
             .permissions(new HashSet<>(Arrays.asList("sys_add", "sys_edit")))
-            .tenantName("myTenantName")
+            .build()
             .withClaim("status", Status.ACTIVE.name())
-            .withClaim("isDelete", false)
-            .build();
+            .withClaim("isDelete", false);
 
-    AuthUser newUser = AuthUtil.login(user);
-    System.out.println(newUser);
+    TokenInfo tokenInfo = AuthUtil.login(user);
+    System.out.println(tokenInfo);
     Thread.sleep(2000);
 
-    AuthUtil.refresh();
+    TokenInfo newTokenInfo = AuthUtil.refresh();
     System.out.println(AuthUtil.getUser());
     System.out.println(AuthUtil.getUser().getClaim("status"));
     System.out.println(AuthUtil.getUser().getClaimAsBool("isDelete"));
-    TokenInfo tokenInfo = AuthUtil.getUser().getTokenInfo();
-    System.out.println("tokenInfo:" + tokenInfo);
+    System.out.println("newTokenInfo:" + newTokenInfo);
     Long id = AuthUtil.getUser().getIdAsLong();
     System.out.println("id:" + id);
   }

@@ -22,14 +22,13 @@ public class ThreadTest {
         new DefaultBanServiceImpl(properties));
     AuthUser user =
         AuthUser.builder()
-            .id(123456L)
-            .nickName("secret")
+            .id("123456")
+            .name("secret")
             .roles(new HashSet<>(Arrays.asList("admin", "manager")))
             .permissions(new HashSet<>(Arrays.asList("sys_add", "sys_edit")))
-            .tenantName("myTenantName")
+            .build()
             .withClaim("status", LoginTest.Status.ACTIVE.name())
-            .withClaim("isDelete", false)
-            .build();
+            .withClaim("isDelete", false);
     AuthUtil.login(user);
 
     new Thread(
@@ -47,14 +46,14 @@ public class ThreadTest {
           System.out.println("threadPool task1\n " + AuthUtil.getUser());
           System.out.println();
         });
-    AuthUtil.refresh(AuthUser.builder().id(2).build());
+    AuthUtil.refresh(AuthUser.builder().id("2").build());
     Thread.sleep(500);
     threadPool.execute(
         () -> {
           System.out.println("threadPool task2\n " + AuthUtil.getUser());
           System.out.println();
           // 在子线程修改只会影响子线程后续，不会影响父线程数据
-          AuthUtil.refresh(AuthUser.builder().id(3).build());
+          AuthUtil.refresh(AuthUser.builder().id("3").build());
           System.out.println("threadPool task2 2\n " + AuthUtil.getUser());
           System.out.println();
         });

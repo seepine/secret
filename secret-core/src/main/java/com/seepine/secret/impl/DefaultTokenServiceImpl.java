@@ -10,7 +10,6 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.seepine.secret.AuthUtil;
 import com.seepine.secret.entity.AuthUser;
-import com.seepine.secret.entity.TokenInfo;
 import com.seepine.secret.exception.ExpiresSecretException;
 import com.seepine.secret.exception.SecretException;
 import com.seepine.secret.exception.TokenSecretException;
@@ -19,7 +18,6 @@ import com.seepine.secret.properties.AuthProperties;
 import com.seepine.tool.Run;
 import com.seepine.tool.cache.Cache;
 import com.seepine.tool.time.CurrentTime;
-import com.seepine.tool.time.CurrentTimeMillis;
 import com.seepine.tool.util.Objects;
 import com.seepine.tool.util.Strings;
 import java.time.Instant;
@@ -53,18 +51,22 @@ public class DefaultTokenServiceImpl implements TokenService {
       JWTCreator.Builder jwtBuilder =
           JWT.create().withIssuer(authProperties.getIssuer()).withIssuedAt(now);
       jwtBuilder.withExpiresAt(Instant.ofEpochSecond(CurrentTime.second() + expires));
-
       Run.nonNull(authUser.getId(), val -> jwtBuilder.withClaim("id", val));
-      Run.nonNull(authUser.getNickName(), val -> jwtBuilder.withClaim("nickName", val));
-      Run.nonNull(authUser.getFullName(), val -> jwtBuilder.withClaim("fullName", val));
-      Run.nonNull(authUser.getUsername(), val -> jwtBuilder.withClaim("username", val));
-      Run.nonNull(authUser.getPhone(), val -> jwtBuilder.withClaim("phone", val));
+      Run.nonNull(authUser.getName(), val -> jwtBuilder.withClaim("name", val));
+      Run.nonNull(authUser.getNickname(), val -> jwtBuilder.withClaim("nickname", val));
       Run.nonNull(authUser.getEmail(), val -> jwtBuilder.withClaim("email", val));
-      Run.nonNull(authUser.getAvatarUrl(), val -> jwtBuilder.withClaim("avatarUrl", val));
-      Run.nonNull(authUser.getTenantName(), val -> jwtBuilder.withClaim("tenantName", val));
+      Run.nonNull(authUser.getEmailVerified(), val -> jwtBuilder.withClaim("emailVerified", val));
+      Run.nonNull(authUser.getPhoneNumber(), val -> jwtBuilder.withClaim("phoneNumber", val));
+      Run.nonNull(
+          authUser.getPhoneNumberVerified(),
+          val -> jwtBuilder.withClaim("phoneNumberVerified", val));
+      Run.nonNull(authUser.getPicture(), val -> jwtBuilder.withClaim("picture", val));
+      Run.nonNull(authUser.getGender(), val -> jwtBuilder.withClaim("gender", val));
+      Run.nonNull(authUser.getAddress(), val -> jwtBuilder.withClaim("address", val));
       Run.nonNull(authUser.getTenantId(), val -> jwtBuilder.withClaim("tenantId", val));
       Run.nonNull(authUser.getPlatform(), val -> jwtBuilder.withClaim("platform", val));
-      Run.nonNull(authUser.getTokenInfo(), val -> jwtBuilder.withClaim("tokenInfo", val.toMap()));
+      Run.nonNull(authUser.getSignAt(), val -> jwtBuilder.withClaim("signAt", val));
+      Run.nonNull(authUser.getRefreshAt(), val -> jwtBuilder.withClaim("refreshAt", val));
       Run.nonEmpty(
           authUser.getRoles(),
           val -> jwtBuilder.withArrayClaim("roles", val.toArray(new String[] {})));
@@ -95,22 +97,23 @@ public class DefaultTokenServiceImpl implements TokenService {
       if (!decodedJwt.getClaim("roles").isMissing() && !decodedJwt.getClaim("roles").isNull()) {
         roles = new HashSet<>(decodedJwt.getClaim("roles").asList(String.class));
       }
-      TokenInfo tokenInfo = TokenInfo.parse(decodedJwt.getClaim("tokenInfo").asMap());
-      tokenInfo.setAccessToken(token);
       AuthUser authUser =
           AuthUser.builder()
               .id(decodedJwt.getClaim("id").asString())
-              .nickName(decodedJwt.getClaim("nickName").asString())
-              .fullName(decodedJwt.getClaim("fullName").asString())
-              .username(decodedJwt.getClaim("username").asString())
-              .phone(decodedJwt.getClaim("phone").asString())
+              .name(decodedJwt.getClaim("name").asString())
+              .nickname(decodedJwt.getClaim("nickname").asString())
               .email(decodedJwt.getClaim("email").asString())
-              .avatarUrl(decodedJwt.getClaim("avatarUrl").asString())
+              .emailVerified(decodedJwt.getClaim("emailVerified").asBoolean())
+              .phoneNumber(decodedJwt.getClaim("phoneNumber").asString())
+              .phoneNumberVerified(decodedJwt.getClaim("phoneNumberVerified").asBoolean())
+              .picture(decodedJwt.getClaim("picture").asString())
+              .gender(decodedJwt.getClaim("gender").asString())
+              .address(decodedJwt.getClaim("address").asString())
               .tenantId(decodedJwt.getClaim("tenantId").asString())
-              .tenantName(decodedJwt.getClaim("tenantName").asString())
               .platform(decodedJwt.getClaim("platform").asString())
+              .signAt(decodedJwt.getClaim("signAt").asLong())
+              .refreshAt(decodedJwt.getClaim("refreshAt").asLong())
               .roles(roles)
-              .tokenInfo(tokenInfo)
               .claims(Objects.require(decodedJwt.getClaim("claims").asMap(), new HashMap<>(16)))
               .build();
       authUser.setPermissions(AuthUtil.getPermissionService().query(authUser));
@@ -127,14 +130,12 @@ public class DefaultTokenServiceImpl implements TokenService {
   }
 
   @Override
-  public void clear(@Nonnull AuthUser authUser) throws SecretException {
-    long expire = authUser.getTokenInfo().getExpires();
-    if (expire > 0) {
-      Cache.set(
-          getKey(authUser.getTokenInfo().getAccessToken()) + ":logout",
-          String.valueOf(CurrentTimeMillis.now() / 1000),
-          expire * 1000);
-    }
+  public void clear(@Nonnull String token) throws SecretException {
+    //    AuthUser authUser = analyze(token);
+    //      Cache.set(
+    //          getKey(token + ":logout"),
+    //          String.valueOf(CurrentTimeMillis.now() / 1000),
+    //          expire * 1000);
   }
 
   private String getKey(String token) {

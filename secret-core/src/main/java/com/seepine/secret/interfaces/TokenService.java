@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
  */
 public interface TokenService {
   /**
-   * 通过对象生成token，需要在此做token-user的缓存逻辑
+   * 通过对象生成token，需要在此做token->user的缓存逻辑
    *
    * @param authUser 用户信息
    * @return 用户信息(需包含token)
@@ -34,8 +34,8 @@ public interface TokenService {
   /**
    * 清理逻辑，例如退出登录时会调用，清理缓存等
    *
-   * @param authUser 用户信息
+   * @param token token
    * @throws SecretException e
    */
-  void clear(@Nonnull AuthUser authUser) throws SecretException;
+  void clear(@Nonnull String token) throws SecretException;
 }

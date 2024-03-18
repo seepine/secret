@@ -11,6 +11,8 @@ import com.seepine.secret.interfaces.PermissionService;
 import com.seepine.secret.interfaces.TokenService;
 import com.seepine.secret.properties.AuthProperties;
 import com.seepine.secret.util.PermissionUtil;
+import com.seepine.tool.Run;
+import com.seepine.tool.lock.Lock;
 import com.seepine.tool.time.CurrentTime;
 import com.seepine.tool.util.Objects;
 import java.util.HashSet;
@@ -26,6 +28,7 @@ import javax.annotation.Nullable;
 public class AuthUtil {
   private static final AuthUtil AUTH_UTIL = new AuthUtil();
   private final ThreadLocal<AuthUser> authUserThreadLocal = new TransmittableThreadLocal<>();
+  private final ThreadLocal<String> tokenThreadLocal = new TransmittableThreadLocal<>();
   private AuthProperties authProperties;
   private TokenService tokenService;
   private PermissionService permissionService;
@@ -134,7 +137,7 @@ public class AuthUtil {
    * @return token
    */
   @Nonnull
-  public static AuthUser login(@Nonnull AuthUser user) {
+  public static TokenInfo login(@Nonnull AuthUser user) {
     return login(user, getAuthProperties().getExpires(), getAuthProperties().getRefreshExpires());
   }
 
@@ -146,7 +149,7 @@ public class AuthUtil {
    * @return user with token
    */
   @Nonnull
-  public static AuthUser login(@Nonnull AuthUser user, @Nonnegative Integer expiresSecond) {
+  public static TokenInfo login(@Nonnull AuthUser user, @Nonnegative Integer expiresSecond) {
     return login(user, Long.valueOf(expiresSecond), getAuthProperties().getRefreshExpires());
   }
 
@@ -159,7 +162,7 @@ public class AuthUtil {
    * @return user with token
    */
   @Nonnull
-  public static AuthUser login(
+  public static TokenInfo login(
       @Nonnull AuthUser user,
       @Nonnegative Integer expiresSecond,
       @Nonnegative Integer refreshExpiresSecond) {
@@ -175,28 +178,23 @@ public class AuthUtil {
    * @return user with token
    */
   @Nonnull
-  public static AuthUser login(
+  public static TokenInfo login(
       @Nonnull AuthUser user,
       @Nonnegative Long expiresSecond,
       @Nonnegative Long refreshExpiresSecond) {
     AuthUser copy = user.copy();
     copy.setPermissions(Objects.require(copy.getPermissions(), HashSet::new));
-    if (copy.getTokenInfo() == null) {
-      copy.setTokenInfo(new TokenInfo().setSignAt(CurrentTime.second()));
-    }
-    copy.setTokenInfo(
-        copy.getTokenInfo()
-            .setExpires(expiresSecond)
-            .setRefreshExpires(refreshExpiresSecond)
-            .setRefreshAt(CurrentTime.second()));
-    copy.getTokenInfo().setAccessToken(null);
-    copy.getTokenInfo().setRefreshToken(null);
+    Run.isNull(copy.getSignAt(), () -> copy.setSignAt(CurrentTime.second()));
+    copy.setRefreshAt(CurrentTime.second());
     String accessToken = AUTH_UTIL.tokenService.generate(copy.copy(), expiresSecond);
     String refreshToken = AUTH_UTIL.tokenService.generate(copy.copy(), refreshExpiresSecond);
-    copy.setTokenInfo(
-        copy.getTokenInfo().setAccessToken(accessToken).setRefreshToken(refreshToken));
     AUTH_UTIL.authUserThreadLocal.set(copy);
-    return copy;
+    return TokenInfo.builder()
+        .accessToken(accessToken)
+        .expiresIn(expiresSecond)
+        .refreshToken(refreshToken)
+        .refreshExpires(refreshExpiresSecond)
+        .build();
   }
 
   /**
@@ -205,7 +203,7 @@ public class AuthUtil {
    * @param token token
    * @return bool
    */
-  public static boolean findAndFill(@Nullable String token) {
+  public static boolean findAndFill(@Nullable String token) throws SecretException {
     // 设置token
     if (Objects.isBlank(token)) {
       return false;
@@ -213,6 +211,7 @@ public class AuthUtil {
     try {
       AuthUser authUser = AUTH_UTIL.tokenService.analyze(token);
       AUTH_UTIL.authUserThreadLocal.set(authUser);
+      AUTH_UTIL.tokenThreadLocal.set(token);
       return true;
     } catch (SecretException e) {
       throw e;
@@ -227,7 +226,7 @@ public class AuthUtil {
    * @return authUser 用户信息
    */
   @Nonnull
-  public static AuthUser refresh() {
+  public static TokenInfo refresh() {
     return refresh(getUser());
   }
 
@@ -238,8 +237,8 @@ public class AuthUtil {
    * @return 用户信息
    */
   @Nonnull
-  public static AuthUser refresh(@Nonnull AuthUser user) {
-    return login(user, user.getTokenInfo().getExpires(), user.getTokenInfo().getRefreshExpires());
+  public static TokenInfo refresh(@Nonnull AuthUser user) {
+    return login(user);
   }
 
   /**
@@ -250,10 +249,12 @@ public class AuthUtil {
    * @param runnable 执行方法
    */
   public static void execute(@Nonnull AuthUser authUser, @Nonnull Runnable runnable) {
-    AuthUser back = AUTH_UTIL.authUserThreadLocal.get();
-    AUTH_UTIL.authUserThreadLocal.set(authUser);
-    runnable.run();
-    AUTH_UTIL.authUserThreadLocal.set(back);
+    execute(
+        authUser,
+        () -> {
+          runnable.run();
+          return null;
+        });
   }
 
   /**
@@ -266,8 +267,12 @@ public class AuthUtil {
   public static <T> T execute(@Nonnull AuthUser authUser, @Nonnull Supplier<T> supplier) {
     AuthUser back = AUTH_UTIL.authUserThreadLocal.get();
     try {
-      AUTH_UTIL.authUserThreadLocal.set(authUser);
-      return supplier.get();
+      return Lock.sync(
+          Objects.requireNonBlank(back.getId(), () -> String.valueOf(back.hashCode())),
+          () -> {
+            AUTH_UTIL.authUserThreadLocal.set(authUser);
+            return supplier.get();
+          });
     } finally {
       AUTH_UTIL.authUserThreadLocal.set(back);
     }
@@ -276,8 +281,9 @@ public class AuthUtil {
   /** 登出 */
   public static void logout() {
     try {
-      AUTH_UTIL.tokenService.clear(getUser());
+      AUTH_UTIL.tokenService.clear(AUTH_UTIL.tokenThreadLocal.get());
       AUTH_UTIL.authUserThreadLocal.remove();
+      AUTH_UTIL.tokenThreadLocal.remove();
     } catch (SecretException ignored) {
     }
   }

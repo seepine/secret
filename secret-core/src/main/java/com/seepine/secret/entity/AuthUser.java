@@ -2,36 +2,52 @@ package com.seepine.secret.entity;
 
 import java.io.Serializable;
 import java.util.*;
+import lombok.*;
+import lombok.experimental.Accessors;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author seepine
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@ToString
+@SuperBuilder(toBuilder = true)
 public class AuthUser implements Serializable {
   private static final long serialVersionUID = 0L;
 
   /** 主键id */
   private String id;
 
-  /** 昵称 */
-  private String nickName;
+  /** 名称 */
+  private String name;
 
-  /** 姓名 */
-  private String fullName;
+  /** 用户的昵称 */
+  private String nickname;
 
-  /** 用户名 */
-  private String username;
-
-  /** 手机号 */
-  private String phone;
-
-  /** 电子邮箱 */
+  /** 电子邮件地址 */
   private String email;
 
-  /** 头像url */
-  private String avatarUrl;
+  /** 电子邮件地址是否经过验证 */
+  private Boolean emailVerified;
 
-  /** 租户名称 */
-  private String tenantName;
+  /** 手机号 */
+  private String phoneNumber;
+
+  /** 手机号是否已验证 */
+  private Boolean phoneNumberVerified;
+
+  /** 头像图片的URL。 */
+  private String picture;
+
+  /** 性别 */
+  private String gender;
+
+  /** 地址 */
+  private String address;
 
   /** 租户id */
   private String tenantId;
@@ -39,143 +55,20 @@ public class AuthUser implements Serializable {
   /** 平台 */
   private String platform;
 
+  /** 登录时间,自动生成,时间戳,单位秒 */
+  private Long signAt;
+
+  /** 续期时间,自动生成,时间戳,单位秒 */
+  private Long refreshAt;
+
   /** 额外参数 */
-  private Map<String, Object> claims = new HashMap<>();
+  @Builder.Default private Map<String, Object> claims = new HashMap<>();
 
   /** 用户角色 */
   private Set<String> roles;
 
   /** 用户权限 */
   private Set<String> permissions;
-
-  /** token信息 */
-  private TokenInfo tokenInfo;
-
-  public String getId() {
-    return id;
-  }
-
-  public AuthUser setId(String id) {
-    this.id = id;
-    return this;
-  }
-
-  public String getNickName() {
-    return nickName;
-  }
-
-  public AuthUser setNickName(String nickName) {
-    this.nickName = nickName;
-    return this;
-  }
-
-  public String getFullName() {
-    return fullName;
-  }
-
-  public AuthUser setFullName(String fullName) {
-    this.fullName = fullName;
-    return this;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public AuthUser setUsername(String username) {
-    this.username = username;
-    return this;
-  }
-
-  public String getPhone() {
-    return phone;
-  }
-
-  public AuthUser setPhone(String phone) {
-    this.phone = phone;
-    return this;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public AuthUser setEmail(String email) {
-    this.email = email;
-    return this;
-  }
-
-  public String getAvatarUrl() {
-    return avatarUrl;
-  }
-
-  public AuthUser setAvatarUrl(String avatarUrl) {
-    this.avatarUrl = avatarUrl;
-    return this;
-  }
-
-  public String getTenantName() {
-    return tenantName;
-  }
-
-  public AuthUser setTenantName(String tenantName) {
-    this.tenantName = tenantName;
-    return this;
-  }
-
-  public String getTenantId() {
-    return tenantId;
-  }
-
-  public AuthUser setTenantId(String tenantId) {
-    this.tenantId = tenantId;
-    return this;
-  }
-
-  public String getPlatform() {
-    return platform;
-  }
-
-  public AuthUser setPlatform(String platform) {
-    this.platform = platform;
-    return this;
-  }
-
-  public Set<String> getRoles() {
-    return roles;
-  }
-
-  public AuthUser setRoles(Set<String> roles) {
-    this.roles = roles;
-    return this;
-  }
-
-  public Set<String> getPermissions() {
-    return permissions;
-  }
-
-  public AuthUser setPermissions(Set<String> permissions) {
-    this.permissions = permissions;
-    return this;
-  }
-
-  public Map<String, Object> getClaims() {
-    return claims;
-  }
-
-  public AuthUser setClaims(Map<String, Object> claims) {
-    this.claims = claims;
-    return this;
-  }
-
-  public TokenInfo getTokenInfo() {
-    return tokenInfo;
-  }
-
-  public AuthUser setTokenInfo(TokenInfo tokenInfo) {
-    this.tokenInfo = tokenInfo;
-    return this;
-  }
 
   public AuthUser withClaim(String key, String value) {
     claims.put(key, value);
@@ -265,214 +158,7 @@ public class AuthUser implements Serializable {
     return tenantId == null ? null : Long.valueOf(tenantId);
   }
 
-  @Override
-  public String toString() {
-    return "AuthUser{"
-        + "id='"
-        + id
-        + '\''
-        + ", nickName='"
-        + nickName
-        + '\''
-        + ", fullName='"
-        + fullName
-        + '\''
-        + ", username='"
-        + username
-        + '\''
-        + ", phone='"
-        + phone
-        + '\''
-        + ", email='"
-        + email
-        + '\''
-        + ", avatarUrl='"
-        + avatarUrl
-        + '\''
-        + ", tenantName='"
-        + tenantName
-        + '\''
-        + ", tenantId='"
-        + tenantId
-        + '\''
-        + ", platform='"
-        + platform
-        + '\''
-        + ", claims="
-        + claims
-        + ", roles="
-        + roles
-        + ", permissions="
-        + permissions
-        + ", tokenInfo="
-        + tokenInfo
-        + '}';
-  }
-
   public AuthUser copy() {
-    Set<String> cloneRoles = new HashSet<>(16);
-    if (!Objects.isNull(roles)) {
-      cloneRoles.addAll(roles);
-    }
-    Set<String> clonePermissions = new HashSet<>(16);
-    if (!Objects.isNull(permissions)) {
-      clonePermissions.addAll(permissions);
-    }
-    Map<String, Object> cloneClaims = new HashMap<>(16);
-    if (!Objects.isNull(claims)) {
-      cloneClaims.putAll(claims);
-    }
-    return AuthUser.builder()
-        .id(id)
-        .nickName(nickName)
-        .fullName(fullName)
-        .username(username)
-        .phone(phone)
-        .email(email)
-        .avatarUrl(avatarUrl)
-        .tenantId(tenantId)
-        .tenantName(tenantName)
-        .platform(platform)
-        .roles(cloneRoles)
-        .permissions(clonePermissions)
-        .claims(cloneClaims)
-        .tokenInfo(tokenInfo == null ? null : tokenInfo.copy())
-        .build();
-  }
-
-  public static AuthUser.Builder builder() {
-    return new AuthUser.Builder();
-  }
-
-  public static class Builder {
-    AuthUser authUser;
-
-    public Builder() {
-      authUser = new AuthUser();
-    }
-
-    public Builder id(String id) {
-      authUser.setId(id);
-      return this;
-    }
-
-    public Builder id(Long id) {
-      authUser.setId(id.toString());
-      return this;
-    }
-
-    public Builder id(Integer id) {
-      authUser.setId(id.toString());
-      return this;
-    }
-
-    public Builder nickName(String nickName) {
-      authUser.setNickName(nickName);
-      return this;
-    }
-
-    public Builder fullName(String fullName) {
-      authUser.setFullName(fullName);
-      return this;
-    }
-
-    public Builder username(String username) {
-      authUser.setUsername(username);
-      return this;
-    }
-
-    public Builder phone(String phone) {
-      authUser.setPhone(phone);
-      return this;
-    }
-
-    public Builder email(String email) {
-      authUser.setEmail(email);
-      return this;
-    }
-
-    public Builder avatarUrl(String avatarUrl) {
-      authUser.setAvatarUrl(avatarUrl);
-      return this;
-    }
-
-    public Builder roles(Set<String> roles) {
-      authUser.roles = roles;
-      return this;
-    }
-
-    public Builder permissions(Set<String> permissions) {
-      authUser.permissions = permissions;
-      return this;
-    }
-
-    public Builder tenantId(String tenantId) {
-      authUser.setTenantId(tenantId);
-      return this;
-    }
-
-    public Builder tenantId(Long tenantId) {
-      authUser.setTenantId(tenantId.toString());
-      return this;
-    }
-
-    public Builder tenantName(String tenantName) {
-      authUser.setTenantName(tenantName);
-      return this;
-    }
-
-    public Builder platform(String platform) {
-      authUser.setPlatform(platform);
-      return this;
-    }
-
-    public Builder tokenInfo(TokenInfo tokenInfo) {
-      authUser.setTokenInfo(tokenInfo);
-      return this;
-    }
-
-    public Builder claims(Map<String, Object> claims) {
-      authUser.claims = claims;
-      return this;
-    }
-
-    public Builder withClaim(String key, String value) {
-      authUser.claims.put(key, value);
-      return this;
-    }
-
-    public Builder withClaim(String key, Boolean value) {
-      authUser.claims.put(key, value);
-      return this;
-    }
-
-    public Builder withClaim(String key, Integer value) {
-      authUser.claims.put(key, value);
-      return this;
-    }
-
-    public Builder withClaim(String key, Long value) {
-      authUser.claims.put(key, value);
-      return this;
-    }
-
-    public Builder withClaim(String key, Double value) {
-      authUser.claims.put(key, value);
-      return this;
-    }
-
-    public Builder withClaim(String key, Date value) {
-      authUser.claims.put(key, value);
-      return this;
-    }
-
-    public Builder withClaim(String key, List<?> value) {
-      authUser.claims.put(key, value);
-      return this;
-    }
-
-    public AuthUser build() {
-      return authUser;
-    }
+    return toBuilder().build();
   }
 }
