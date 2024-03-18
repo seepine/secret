@@ -1,35 +1,35 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>secret-parent</artifactId>
-        <groupId>com.seepine</groupId>
-        <version>1.0.0-beta.50</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>secret-parent</artifactId>
+    <groupId>com.seepine</groupId>
+    <version>1.0.0-beta.51</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>secret-oauth2</artifactId>
-    <packaging>jar</packaging>
-    <name>secret-oauth2</name>
+  <artifactId>secret-oauth2</artifactId>
+  <packaging>jar</packaging>
+  <name>secret-oauth2</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.seepine</groupId>
-            <artifactId>secret-annotation</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.seepine</groupId>
-            <artifactId>secret-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>com.seepine</groupId>
+      <artifactId>secret-annotation</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.seepine</groupId>
+      <artifactId>secret-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 </project>

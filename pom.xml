@@ -4,7 +4,7 @@
 
   <groupId>com.seepine</groupId>
   <artifactId>secret-parent</artifactId>
-  <version>1.0.0-beta.50</version>
+  <version>1.0.0-beta.51</version>
   <modules>
     <module>secret-core</module>
     <module>secret-oauth2</module>
